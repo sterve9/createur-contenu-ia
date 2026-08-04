@@ -21,49 +21,53 @@ Il pilote uniquement l'avancement du projet.
 ## 📌 État du projet
 
 - **Projet** : Assistant IA pour Créateurs de Contenu
-- **Version courante** : **V2 — Conception métier en cours**
-- **Statut global** : 🟢 V1 STABLE verrouillée. Cadrage métier V2 terminé. Passage à l'architecture métier V2.
-- **Phase actuelle** : Conception métier de la V2
+- **Version courante** : **V2 — Modélisation des données en cours**
+- **Statut global** : 🟢 V1 STABLE verrouillée. Architecture métier V2 formalisée. Passage à la modélisation des données V2.
+- **Phase actuelle** : Modélisation des données de la V2
 - **Dernière mise à jour** : 12 novembre 2025
 
 ---
 
 ## 🎯 Tâche active
 
-- **ID** : `V2-002`
-- **Titre** : Architecture Métier de la V2 — formaliser les flux, objets, règles métier et le catalogue d'outils de la V2.
+- **ID** : `V2-003`
+- **Titre** : Modèle de Données V2 — représenter conceptuellement les nouveaux objets métier introduits par la V2 et leurs relations.
 - **Priorité** : P0
 - **Statut** : 🟡 En cours
 
 **Livrables attendus** :
-1. Formalisation des flux métier V2 (de la création de campagne au dossier de production).
-2. Identification des nouveaux objets métier introduits par la V2 (découpage scènes, prompts, catalogue d'outils, dossier de production).
-3. Description des règles métier associées.
-4. Description du catalogue d'outils et de sa structure fonctionnelle.
-5. Rédaction du document `02.V2_Architecture_metier.md`.
+1. Identification conceptuelle des nouveaux objets métier V2 (Scène, Prompt Image, Prompt Animation, Description Publication, Dossier de Production, Checklist de Production, Outil du Catalogue).
+2. Description des attributs principaux de chaque objet.
+3. Formalisation des relations entre les objets V2, et entre les objets V2 et les objets V1 existants.
+4. Explicitation du cycle de vie des principaux objets (notamment le Dossier de Production).
+5. Explicitation du positionnement du catalogue d'outils dans le modèle.
+6. Rédaction du document `02.1.V2_Modele_de_Donnees.md`.
 
 ---
 
 ## 📂 Documents à ouvrir (dans cet ordre uniquement)
 
 1. `08_Project_Tracker.md` (ce document)
-2. `00_Contexte_Du_Client.md` — pour garder le persona en tête
-3. `01.V2_Besoin_Client.md` — besoin V2 validé
-4. `02_Architecture_metier.md` — pour rappel de la logique métier V1 (référence)
+2. `01.V2_Besoin_Client.md` — besoin V2 validé
+3. `02.V2_Architecture_metier.md` — architecture métier V2 validée
+4. `02.1_Modele_de_Donnees.md` — modèle V1 (référence pour comprendre les objets déjà existants)
 
-**Ne pas consulter les documents techniques (02.x, 03, 04, 05) V1 pendant la phase de conception métier V2** — le risque est de rester enfermé dans les choix techniques V1 alors qu'on doit raisonner métier.
+**Ne pas consulter les documents techniques V1 (02.3, 03, 04, 05) pendant la modélisation métier V2** — le risque est d'anticiper des choix techniques alors qu'on doit rester au niveau conceptuel.
 
 ---
 
 ## ✅ Critères de fin de séance
 
 La séance est terminée uniquement si :
-- les nouveaux flux métier V2 sont formalisés par écrit ;
-- les nouveaux objets métier introduits par la V2 sont identifiés ;
-- les règles métier associées sont décrites ;
-- le catalogue d'outils est formalisé comme un composant métier à part entière ;
-- le document `02.V2_Architecture_metier.md` est créé et intégré à `00_Documentations/` ;
-- le Project Tracker est mis à jour (statut V2-002, prochaine tâche définie).
+- tous les nouveaux objets métier V2 sont représentés dans le modèle ;
+- chaque objet possède ses attributs principaux et son identifiant ;
+- les relations entre objets V2 sont explicites ;
+- les relations entre objets V2 et objets V1 (Campagne, Script) sont explicites ;
+- le catalogue d'outils est intégré au modèle de manière cohérente ;
+- le cycle de vie du Dossier de Production est décrit ;
+- aucune technologie d'implémentation n'apparaît dans le document ;
+- le document `02.1.V2_Modele_de_Donnees.md` est créé et intégré à `00_Documentations/` ;
+- le Project Tracker est mis à jour (statut V2-003, prochaine tâche définie).
 
 ---
 
@@ -154,6 +158,7 @@ Accessible depuis un **tableau de bord personnel**.
 - ✅ Catalogue d'outils intégré (gratuits, freemium, payants — avec spécificités)
 - ✅ Interface : tableau de bord personnel (pas de SaaS, pas de multi-utilisateurs)
 - ✅ Usage : solo, open source, démonstration de résolution de problème métier
+- ✅ Architecture : **V2 lit les données V1 (base partagée), réutilise les workflows V1, écrit dans ses propres tables V2** (E3 + E3-a)
 
 ### Ce que la V2 n'est PAS
 
@@ -170,12 +175,29 @@ Accessible depuis un **tableau de bord personnel**.
 - ⬜ Axe Pipeline complet (génération auto des visuels + montage automatisé)
 - ⬜ Passage éventuel en SaaS multi-utilisateurs
 
+### Documentation V2
+
+| Document | Statut |
+|----------|--------|
+| `01.V2_Besoin_Client` | ✅ |
+| `02.V2_Architecture_metier` | ✅ |
+| `02.1.V2_Modele_de_Donnees` | 🟡 En cours (V2-003) |
+| `02.2.V2_Dictionnaire_des_Donnees` | ⬜ |
+| `02.3.V2_Schema_Physique_des_Donnees` | ⬜ |
+| `02.4.V2_Mapping_des_Donnees` | ⬜ |
+| `02.5.V2_Contrat_des_Donnees` | ⬜ |
+| `03.V2_Architecture_des_Workflows` | ⬜ |
+| `04.V2_Specification_des_Composants` | ⬜ |
+| `05.V2_Implementation_Technique` | ⬜ |
+| `07.V2_Plan_de_tests` | ⬜ |
+
 ---
 
 ## ➜ Prochaine tâche
 
-**V2-002 — Architecture Métier de la V2**
-Formaliser les flux métier, les nouveaux objets, les règles associées et le catalogue d'outils dans un nouveau document `02.V2_Architecture_metier.md`.
+**V2-003 — Modèle de Données V2**
+Représenter conceptuellement les nouveaux objets métier V2, leurs attributs, leurs relations entre eux et avec les objets V1 existants.
+Rédiger le document `02.1.V2_Modele_de_Donnees.md`.
 
 ---
 
@@ -185,6 +207,7 @@ Formaliser les flux métier, les nouveaux objets, les règles associées et le c
 |----|-------|----------|--------|
 | DOC-002 | Aligner 02.1, 02.2, 02.3 avec le schéma Supabase réel | Moyenne | ✅ Terminé |
 | DOC-003 | Enrichir `06_Journal_des_Decisions_d_Architecture` avec les ADR V1 | Basse | ⬜ À faire |
+| DOC-004 | Créer une entrée ADR pour la décision d'architecture V2 (E3 + E3-a) | Moyenne | ⬜ À faire |
 
 ---
 
@@ -202,8 +225,8 @@ Formaliser les flux métier, les nouveaux objets, les règles associées et le c
 | **V1 STABLE — Livraison** | ✅ |
 | Alignement documentaire V1 STABLE | ✅ |
 | Cadrage métier V2 | ✅ |
-| **Conception métier V2** | 🟡 En cours |
-| Modélisation des données V2 | ⬜ |
+| Architecture métier V2 | ✅ |
+| **Modélisation des données V2** | 🟡 En cours |
 | Conception des workflows V2 | ⬜ |
 | Spécification technique V2 | ⬜ |
 | Développement V2 | ⬜ |
@@ -220,6 +243,7 @@ Formaliser les flux métier, les nouveaux objets, les règles associées et le c
 | 2025-11 | 📚 Publication GitHub V1 | Repo public, tag `v1.0.0-stable`, release publiée, licence MIT |
 | 2025-11-12 | 📚 Alignement documentaire (DOC-002) | 02.1, 02.2 et 02.3 alignés sur le schéma Supabase réel |
 | 2025-11-12 | 🎯 **Cadrage V2 terminé** | `01.V2_Besoin_Client.md` rédigé et validé — persona et axe métier fixés |
+| 2025-11-12 | 🏛️ **Architecture métier V2 formalisée** | `02.V2_Architecture_metier.md` rédigé et validé — flux, objets, règles et positionnement V1/V2 actés |
 
 ---
 
