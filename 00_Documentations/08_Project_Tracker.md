@@ -142,6 +142,9 @@ La V2 n'est pas une amélioration technique de la V1 : elle doit apporter une va
 Identifier et formaliser le problème créateur à résoudre, proposer les axes de solution, choisir l'axe retenu.
 
 ---
+DOC-002 — Aligner la documentation de données sur schema.sql / Supabase réel
+Statut : À faire
+Priorité : Moyenne
 
 ## 📈 Vision globale du projet
 
