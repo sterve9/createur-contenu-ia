@@ -1,0 +1,61 @@
+# ============================================
+# .gitignore — Créateur de Contenu IA
+# ============================================
+
+# --- OS ---
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# --- Éditeurs ---
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# --- Node / npm (au cas où) ---
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# --- Python (au cas où) ---
+__pycache__/
+*.py[cod]
+*$py.class
+.venv/
+venv/
+env/
+
+# --- Logs ---
+*.log
+logs/
+
+# --- Environnement ---
+.env
+.env.local
+.env.*.local
+*.env
+
+# --- Backups locaux ---
+backups/
+*.bak
+*.backup
+
+# --- Archives locales ---
+99_Archives/
+
+# --- Credentials n8n (jamais versionner) ---
+credentials/
+*.credentials.json
+
+# --- Bases de données locales ---
+*.sqlite
+*.db
+*.dump
+
+# --- Fichiers temporaires ---
+tmp/
+temp/
+*.tmp

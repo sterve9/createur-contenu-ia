@@ -1,0 +1,139 @@
+{
+  "name": "WF-Error-Handler",
+  "nodes": [
+    {
+      "parameters": {
+        "content": "# ⚠️ Gestion des Erreurs (E01-E04)\n\n**Workflow séparé déclenché par toute erreur du workflow principal**\n\n- E01 · Error Trigger (capture automatique)\n- E02 · Structuration du message d'erreur\n- E03 · INSERT dans `journal_execution` (lié à la campagne via execution_id)\n- E04 · UPDATE `campagnes` → statut = ERREUR + date_fin\n\n🔗 Lien avec workflow principal : via `execution_id`\n📋 Toute erreur laisse une trace dans `journal_execution`",
+        "height": 432,
+        "width": 438,
+        "color": "#FF0000"
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        -1424,
+        -160
+      ],
+      "id": "4dd22fac-77e2-4c0c-a91d-e0d50b761670",
+      "name": "Sticky Note"
+    },
+    {
+      "parameters": {},
+      "type": "n8n-nodes-base.errorTrigger",
+      "typeVersion": 1,
+      "position": [
+        -960,
+        -16
+      ],
+      "id": "cc6c927c-1d35-4cb5-a1a3-ead3b5e38809",
+      "name": "E01 · Capture Erreur"
+    },
+    {
+      "parameters": {
+        "jsCode": "const exec = $json.execution || {};\nconst error = exec.error || {};\n\nreturn [\n  {\n    json: {\n      execution_id: exec.id || null,\n      niveau: \"ERREUR\",\n      etape: error.node?.name || exec.lastNodeExecuted || \"INCONNU\",\n      message: error.description \n        || error.message \n        || (error.messages ? error.messages.join(\" | \") : null)\n        || \"Erreur inconnue\"\n    }\n  }\n];"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -768,
+        -16
+      ],
+      "id": "1493d770-c5d7-4eea-a207-1062772a57a2",
+      "name": "E02 · Structurer Erreur"
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "INSERT INTO journal_execution (campagne_id, niveau, etape, message)\nSELECT id, '{{ $json.niveau }}', '{{ $json.etape }}', '{{ $json.message }}'\nFROM campagnes\nWHERE execution_id = '{{ $json.execution_id }}';",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.6,
+      "position": [
+        -608,
+        -16
+      ],
+      "id": "ab806372-584b-4d54-89b6-734d4ff4e9d5",
+      "name": "E03 · Log Erreur",
+      "credentials": {
+        "postgres": {
+          "id": "9CJdZfap0gHnWIUB",
+          "name": "ia-contenu-prod"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "UPDATE campagnes\nSET statut = 'ERREUR',\n    date_fin = NOW()\nWHERE execution_id = '{{ $('Structurer Erreur').item.json.execution_id }}';",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.6,
+      "position": [
+        -432,
+        -16
+      ],
+      "id": "bc3b49ff-2596-41b1-922b-187f4d770949",
+      "name": "E04 · Update Campagne Erreur",
+      "credentials": {
+        "postgres": {
+          "id": "9CJdZfap0gHnWIUB",
+          "name": "ia-contenu-prod"
+        }
+      }
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "E01 · Capture Erreur": {
+      "main": [
+        [
+          {
+            "node": "E02 · Structurer Erreur",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "E02 · Structurer Erreur": {
+      "main": [
+        [
+          {
+            "node": "E03 · Log Erreur",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "E03 · Log Erreur": {
+      "main": [
+        [
+          {
+            "node": "E04 · Update Campagne Erreur",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": true,
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate",
+    "timeSavedMode": "fixed",
+    "errorWorkflow": "MPV8dEdAPPoUcuCV",
+    "callerPolicy": "workflowsFromSameOwner",
+    "availableInMCP": false
+  },
+  "versionId": "7ae194c2-4739-4158-a4b6-59ed2638bffa",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "09a4271ff440e2d4ed1d23d70521c8ceadc5f0cf389b7a9fad7d7fcb78f3bb2c"
+  },
+  "id": "MPV8dEdAPPoUcuCV",
+  "tags": []
+}
