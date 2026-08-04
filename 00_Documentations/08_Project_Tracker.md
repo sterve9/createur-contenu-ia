@@ -21,48 +21,49 @@ Il pilote uniquement l'avancement du projet.
 ## 📌 État du projet
 
 - **Projet** : Assistant IA pour Créateurs de Contenu
-- **Version courante** : **V1 STABLE** ✅
-- **Statut global** : 🟢 V1 STABLE livrée, documentée et sauvegardée. Cadrage V2 en cours.
-- **Phase actuelle** : Cadrage métier de la V2
-- **Dernière mise à jour** : (à mettre à jour à chaque séance)
+- **Version courante** : **V2 — Conception métier en cours**
+- **Statut global** : 🟢 V1 STABLE verrouillée. Cadrage métier V2 terminé. Passage à l'architecture métier V2.
+- **Phase actuelle** : Conception métier de la V2
+- **Dernière mise à jour** : 12 novembre 2025
 
 ---
 
 ## 🎯 Tâche active
 
-- **ID** : `V2-001`
-- **Titre** : Cadrage du besoin métier V2 — identifier un vrai problème de créateur de contenu que la V2 doit résoudre.
+- **ID** : `V2-002`
+- **Titre** : Architecture Métier de la V2 — formaliser les flux, objets, règles métier et le catalogue d'outils de la V2.
 - **Priorité** : P0
 - **Statut** : 🟡 En cours
 
 **Livrables attendus** :
-1. Formalisation du problème créateur adressé.
-2. Proposition de 2 à 3 axes de solution (métier, pas technique).
-3. Choix de l'axe retenu et justification.
-4. Rédaction du besoin V2 (nouveau fichier `01.V2_Besoin_Client.md` ou mise à jour de `01_Besoin_Client.md`).
+1. Formalisation des flux métier V2 (de la création de campagne au dossier de production).
+2. Identification des nouveaux objets métier introduits par la V2 (découpage scènes, prompts, catalogue d'outils, dossier de production).
+3. Description des règles métier associées.
+4. Description du catalogue d'outils et de sa structure fonctionnelle.
+5. Rédaction du document `02.V2_Architecture_metier.md`.
 
 ---
 
 ## 📂 Documents à ouvrir (dans cet ordre uniquement)
 
 1. `08_Project_Tracker.md` (ce document)
-2. `00_Contexte_Du_Client.md` — pour re-contextualiser le persona
-3. `01_Besoin_Client.md` — pour rappeler le besoin V1
-4. `02_Architecture_metier.md` — pour situer la V1 dans son intention initiale
+2. `00_Contexte_Du_Client.md` — pour garder le persona en tête
+3. `01.V2_Besoin_Client.md` — besoin V2 validé
+4. `02_Architecture_metier.md` — pour rappel de la logique métier V1 (référence)
 
-**Ne pas consulter les documents techniques (02.x, 03, 04, 05) pendant la phase de cadrage V2** — le risque est de rester dans la logique technique V1 au lieu de repartir du besoin utilisateur.
+**Ne pas consulter les documents techniques (02.x, 03, 04, 05) V1 pendant la phase de conception métier V2** — le risque est de rester enfermé dans les choix techniques V1 alors qu'on doit raisonner métier.
 
 ---
 
 ## ✅ Critères de fin de séance
 
 La séance est terminée uniquement si :
-- le problème créateur adressé par la V2 est formalisé par écrit ;
-- au moins 2 axes de solution sont posés sur la table ;
-- un axe est choisi et justifié ;
-- le Project Tracker est mis à jour (statut V2-001, prochaine tâche définie).
-
-**Ne pas démarrer la spécification technique V2 avant d'avoir validé le besoin.**
+- les nouveaux flux métier V2 sont formalisés par écrit ;
+- les nouveaux objets métier introduits par la V2 sont identifiés ;
+- les règles métier associées sont décrites ;
+- le catalogue d'outils est formalisé comme un composant métier à part entière ;
+- le document `02.V2_Architecture_metier.md` est créé et intégré à `00_Documentations/` ;
+- le Project Tracker est mis à jour (statut V2-002, prochaine tâche définie).
 
 ---
 
@@ -77,9 +78,9 @@ La V1 STABLE est **livrée, testée et documentée**. Aucune modification de la 
 | `00_Contexte_Du_Client` | ✅ |
 | `01_Besoin_Client` | ✅ |
 | `02_Architecture_metier` | ✅ |
-| `02.1_Modele_de_Donnees` | ✅ |
-| `02.2_Dictionnaire_des_Donnees` | ✅ |
-| `02.3_Schema_Physique_des_Donnees` | ✅ |
+| `02.1_Modele_de_Donnees` | ✅ (aligné DOC-002) |
+| `02.2_Dictionnaire_des_Donnees` | ✅ (aligné DOC-002) |
+| `02.3_Schema_Physique_des_Donnees` | ✅ (aligné DOC-002) |
 | `02.4_Mapping_des_Donnees` | ✅ |
 | `02.5_Contrat_des_Donnees` | ✅ |
 | `03_Architecture_des_Workflows` | ✅ |
@@ -114,37 +115,78 @@ La V1 STABLE est **livrée, testée et documentée**. Aucune modification de la 
 
 ---
 
-## 🚀 Roadmap V2 (à définir)
+## 🚀 Roadmap V2
 
 ### Objectif de la V2
 
 **Résoudre un vrai problème de créateur de contenu.**
-La V2 n'est pas une amélioration technique de la V1 : elle doit apporter une valeur métier nouvelle et mesurable.
+La V2 apporte le contexte d'exécution qui manque à la V1 : transformer un script en dossier de production complet, prêt à exécuter dans les outils IA du créateur.
 
-### Axes candidats (à arbitrer pendant V2-001)
+### Persona ciblé
 
-*(À compléter lors du cadrage V2)*
+**Le side-hustler ambitieux (Persona B)** :
+- crée du contenu le soir/week-end en parallèle d'un emploi principal ;
+- publie entre 3 et 8 vidéos par mois ;
+- contrainte principale : le temps ;
+- utilise déjà des outils IA (gratuits et/ou payants).
 
-- ⬜ Axe A : *(à définir)*
-- ⬜ Axe B : *(à définir)*
-- ⬜ Axe C : *(à définir)*
+### Axe retenu
+
+**Axe Production Assistée — "Le Kit Créateur"**
+
+Fournir à chaque campagne un **dossier de production complet** :
+- 1 script vidéo complet ;
+- 1 découpage en scènes ;
+- N prompts images optimisés pour l'**outil choisi par le créateur** ;
+- N prompts animations optimisés pour l'**outil choisi par le créateur** ;
+- 1 description par plateforme de publication ;
+- 1 liste de hashtags par plateforme.
+
+Accessible depuis un **tableau de bord personnel**.
+
+### Décisions structurantes validées
+
+- ✅ Persona : Side-hustler ambitieux (Persona B)
+- ✅ Axe : Production assistée (pas de génération auto d'images/vidéos)
+- ✅ 1 seul script ultra-complet par campagne (pas d'usine à scripts)
+- ✅ Choix des outils par le créateur au lancement de la campagne
+- ✅ Un seul outil d'image + un seul outil d'animation par campagne (cohérence visuelle)
+- ✅ Catalogue d'outils intégré (gratuits, freemium, payants — avec spécificités)
+- ✅ Interface : tableau de bord personnel (pas de SaaS, pas de multi-utilisateurs)
+- ✅ Usage : solo, open source, démonstration de résolution de problème métier
 
 ### Ce que la V2 n'est PAS
-- une simple amélioration technique ;
-- un ajout de plateformes sans problème utilisateur clair derrière ;
-- une refonte de l'architecture V1 (sauf nécessité imposée par le besoin).
+
+- une génération automatique des images / vidéos ;
+- une automatisation du montage ;
+- une publication automatique sur les plateformes ;
+- un SaaS multi-utilisateurs ;
+- une refonte de l'architecture V1.
+
+### Axes futurs (V3+, à étudier)
+
+- ⬜ Axe Intelligence Stratégique (recommandations, angles viraux, analyse concurrentielle)
+- ⬜ Axe Publication & Suivi de performance
+- ⬜ Axe Pipeline complet (génération auto des visuels + montage automatisé)
+- ⬜ Passage éventuel en SaaS multi-utilisateurs
 
 ---
 
 ## ➜ Prochaine tâche
 
-**V2-001 — Cadrage métier de la V2**
-Identifier et formaliser le problème créateur à résoudre, proposer les axes de solution, choisir l'axe retenu.
+**V2-002 — Architecture Métier de la V2**
+Formaliser les flux métier, les nouveaux objets, les règles associées et le catalogue d'outils dans un nouveau document `02.V2_Architecture_metier.md`.
 
 ---
-DOC-002 — Aligner la documentation de données sur schema.sql / Supabase réel
-Statut : À faire
-Priorité : Moyenne
+
+## 📌 TODO transverses
+
+| ID | Titre | Priorité | Statut |
+|----|-------|----------|--------|
+| DOC-002 | Aligner 02.1, 02.2, 02.3 avec le schéma Supabase réel | Moyenne | ✅ Terminé |
+| DOC-003 | Enrichir `06_Journal_des_Decisions_d_Architecture` avec les ADR V1 | Basse | ⬜ À faire |
+
+---
 
 ## 📈 Vision globale du projet
 
@@ -159,8 +201,11 @@ Priorité : Moyenne
 | Tests & validation V1 | ✅ |
 | **V1 STABLE — Livraison** | ✅ |
 | Alignement documentaire V1 STABLE | ✅ |
-| **Cadrage métier V2** | 🟡 En cours |
-| Conception V2 | ⬜ |
+| Cadrage métier V2 | ✅ |
+| **Conception métier V2** | 🟡 En cours |
+| Modélisation des données V2 | ⬜ |
+| Conception des workflows V2 | ⬜ |
+| Spécification technique V2 | ⬜ |
 | Développement V2 | ⬜ |
 | Tests & validation V2 | ⬜ |
 | Déploiement V2 | ⬜ |
@@ -171,9 +216,10 @@ Priorité : Moyenne
 
 | Date | Jalon | Détail |
 |------|-------|--------|
-| *(à dater)* | 🎉 **V1 STABLE livrée** | Workflow principal C01→C15 + workflow d'erreur E01→E04 opérationnels, testés, sauvegardés |
-| *(à dater)* | 📚 Alignement documentaire V1 STABLE | Toute la doc `00_Documentations/` synchronisée avec l'implémentation réelle |
-| *(aujourd'hui)* | 🎯 Ouverture du cadrage V2 | Démarrage de V2-001 |
+| 2025-08-03 | 🎉 **V1 STABLE livrée** | Workflow principal C01→C15 + workflow d'erreur E01→E04 opérationnels, testés, sauvegardés |
+| 2025-11 | 📚 Publication GitHub V1 | Repo public, tag `v1.0.0-stable`, release publiée, licence MIT |
+| 2025-11-12 | 📚 Alignement documentaire (DOC-002) | 02.1, 02.2 et 02.3 alignés sur le schéma Supabase réel |
+| 2025-11-12 | 🎯 **Cadrage V2 terminé** | `01.V2_Besoin_Client.md` rédigé et validé — persona et axe métier fixés |
 
 ---
 
@@ -182,4 +228,5 @@ Priorité : Moyenne
 - Le tracker est **le seul document qui bouge à chaque séance**.
 - Toute décision d'architecture prise en séance → à consigner dans `06_Journal_des_Decisions_d_Architecture.md`.
 - Toute modification de la V1 STABLE → refusée par défaut, sauf bug critique documenté.
-- La V2 se construit dans **de nouveaux fichiers** ou dans des sections `V2` clairement identifiées, pour préserver la référence V1.
+- La V2 se construit dans **de nouveaux fichiers** dédiés (`01.V2_`, `02.V2_`, etc.), pour préserver la référence V1.
+- Les critères de fin de séance doivent être remplis avant de clôturer une session.
