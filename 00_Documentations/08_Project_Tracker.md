@@ -21,54 +21,50 @@ Il pilote uniquement l'avancement du projet.
 ## 📌 État du projet
 
 - **Projet** : Assistant IA pour Créateurs de Contenu
-- **Version courante** : **V2 — Modélisation des données en cours**
-- **Statut global** : 🟢 V1 STABLE verrouillée. Mapping des données V2 formalisé. Passage au contrat des données V2.
-- **Phase actuelle** : Modélisation des données de la V2 (niveau contrat)
+- **Version courante** : **V2 — Architecture des workflows en cours**
+- **Statut global** : 🟢 V1 STABLE verrouillée. Modélisation complète des données V2 terminée (02.1 → 02.5). Passage à l'architecture des workflows V2.
+- **Phase actuelle** : Conception des workflows de la V2
 - **Dernière mise à jour** : 12 novembre 2025
 
 ---
 
 ## 🎯 Tâche active
 
-- **ID** : `V2-007`
-- **Titre** : Contrat des Données V2 — formaliser les garanties d'échange de données entre les composants V2 et entre les composants V2 et V1, à un niveau abstrait indépendant de toute technologie.
+- **ID** : `V2-008`
+- **Titre** : Architecture des Workflows V2 — concevoir l'orchestration technique des composants V2 : identification des workflows, séquence des étapes, gestion des erreurs, articulation avec les workflows V1 existants.
 - **Priorité** : P0
 - **Statut** : 🟡 En cours
 
 **Livrables attendus** :
-1. Définition du contrat d'entrée principal V2 (création d'une campagne enrichie avec choix des outils).
-2. Définition des contrats de sortie entre les composants V2 (découpage → plans → prompts, etc.).
-3. Formalisation du contrat V2 ↔ V1 (garanties minimales attendues des données V1 pour que la V2 fonctionne).
-4. Formalisation du contrat V2 ↔ Dashboard (agrégation des données à exposer).
-5. Formalisation du contrat V2 ↔ Catalogue d'Outils (structure attendue).
-6. Explicitation des règles de validation et des invariants à respecter.
-7. Rédaction du document `02.5.V2_Contrat_des_Donnees.md`.
+1. Identification des workflows V2 nécessaires (workflow principal V2, éventuel workflow d'erreur V2, workflow de génération de kit).
+2. Formalisation de la séquence des étapes de chaque workflow (nœuds C-V2-01, C-V2-02, etc., par cohérence avec le nommage V1).
+3. Description de la manière dont les workflows V2 déclenchent et réutilisent les workflows V1 (collecte, analyse, script).
+4. Formalisation de la gestion des erreurs V2 (comportement en cas d'échec d'un générateur, résilience).
+5. Explicitation de la corrélation entre exécutions V2 et données produites (traçabilité).
+6. Rédaction du document `03.V2_Architecture_des_Workflows.md`.
 
 ---
 
 ## 📂 Documents à ouvrir (dans cet ordre uniquement)
 
 1. `08_Project_Tracker.md` (ce document)
-2. `02.1.V2_Modele_de_Donnees.md` — objets métier V2
-3. `02.2.V2_Dictionnaire_des_Donnees.md` — attributs V2
-4. `02.3.V2_Schema_Physique_des_Donnees.md` — schéma physique V2
-5. `02.4.V2_Mapping_des_Donnees.md` — mapping V2 (référence directe)
-6. `02.5_Contrat_des_Donnees.md` — contrat V1 (référence de style)
+2. `02.V2_Architecture_metier.md` — flux métier V2 (référence pour la traduction en workflows)
+3. `02.5.V2_Contrat_des_Donnees.md` — contrats entre composants (référence directe pour les nœuds)
+4. `02.4.V2_Mapping_des_Donnees.md` — pour savoir quelle table chaque nœud écrit
+5. `03_Architecture_des_Workflows.md` — architecture V1 (référence de style et pour comprendre la réutilisation)
 
 ---
 
 ## ✅ Critères de fin de séance
 
 La séance est terminée uniquement si :
-- le contrat d'entrée principal V2 est formalisé (structure attendue à la création d'une campagne enrichie) ;
-- les contrats de sortie entre les composants V2 sont explicites ;
-- les garanties minimales attendues des données V1 par la V2 sont documentées ;
-- le contrat d'exposition vers le Dashboard est décrit ;
-- la structure du catalogue d'outils est décrite comme un contrat clair ;
-- les règles de validation sont exhaustives ;
-- aucune technologie d'implémentation (HTTP, JSON, SQL, n8n) n'apparaît dans le document ;
-- le document `02.5.V2_Contrat_des_Donnees.md` est créé et intégré à `00_Documentations/` ;
-- le Project Tracker est mis à jour (statut V2-007, prochaine tâche définie).
+- les workflows V2 nécessaires sont identifiés et nommés ;
+- la séquence des nœuds de chaque workflow est formalisée avec un nommage cohérent (C-V2-XX) ;
+- l'articulation avec les workflows V1 (déclenchement, réutilisation, attente) est décrite ;
+- la gestion des erreurs V2 est spécifiée (comportement isolé par générateur, statut de dossier, journalisation) ;
+- la traçabilité entre exécutions V2 et données produites est explicitée ;
+- le document `03.V2_Architecture_des_Workflows.md` est créé et intégré à `00_Documentations/` ;
+- le Project Tracker est mis à jour (statut V2-008, prochaine tâche définie).
 
 ---
 
@@ -166,6 +162,8 @@ Accessible depuis un **tableau de bord personnel**.
 - ✅ Traçabilité : les prompts conservent l'`outil_id` pour lequel ils ont été générés
 - ✅ Conventions physiques V2 : préfixe `v2_`, PK en BIGINT, timestamps en `timestamptz`, VARCHAR/TEXT selon règle
 - ✅ Unicité d'écriture : chaque colonne V2 possède un seul composant écrivain (règle de mapping)
+- ✅ Contrats V2 : la V2 ne modifie **jamais** les données V1 (règle lecture seule)
+- ✅ Résilience : défaillance d'un générateur (prompt, description) → n'impacte pas les autres, dossier reste en `EN_COURS`
 
 ### Ce que la V2 n'est PAS
 
@@ -192,8 +190,8 @@ Accessible depuis un **tableau de bord personnel**.
 | `02.2.V2_Dictionnaire_des_Donnees` | ✅ |
 | `02.3.V2_Schema_Physique_des_Donnees` | ✅ |
 | `02.4.V2_Mapping_des_Donnees` | ✅ |
-| `02.5.V2_Contrat_des_Donnees` | 🟡 En cours (V2-007) |
-| `03.V2_Architecture_des_Workflows` | ⬜ |
+| `02.5.V2_Contrat_des_Donnees` | ✅ |
+| `03.V2_Architecture_des_Workflows` | 🟡 En cours (V2-008) |
 | `04.V2_Specification_des_Composants` | ⬜ |
 | `05.V2_Implementation_Technique` | ⬜ |
 | `07.V2_Plan_de_tests` | ⬜ |
@@ -202,14 +200,15 @@ Accessible depuis un **tableau de bord personnel**.
 
 ## ➜ Prochaine tâche
 
-**V2-007 — Contrat des Données V2**
-Formaliser les garanties d'échange de données :
-- entre les composants V2 ;
-- entre la V2 et la V1 (données lues) ;
-- entre la V2 et le Dashboard (données exposées) ;
-- entre la V2 et le Catalogue d'Outils.
+**V2-008 — Architecture des Workflows V2**
+Concevoir l'orchestration technique des composants V2 :
+- identifier les workflows V2 à mettre en place ;
+- formaliser la séquence des nœuds (C-V2-01, C-V2-02, ...) ;
+- décrire la réutilisation des workflows V1 (collecte, analyse, script) ;
+- spécifier la gestion des erreurs V2 (résilience isolée par générateur) ;
+- garantir la traçabilité exécution ↔ données produites.
 
-Rédiger le document `02.5.V2_Contrat_des_Donnees.md`.
+Rédiger le document `03.V2_Architecture_des_Workflows.md`.
 
 ---
 
@@ -223,6 +222,7 @@ Rédiger le document `02.5.V2_Contrat_des_Donnees.md`.
 | DOC-005 | Créer une entrée ADR pour la décision "Scène → Plans" (rythme visuel du montage) | Basse | ⬜ À faire |
 | DOC-006 | Créer une entrée ADR pour la décision "outil_id conservé dans les prompts" | Basse | ⬜ À faire |
 | DOC-007 | Créer une entrée ADR pour les conventions physiques V2 (préfixe `v2_`, BIGINT, timestamptz) | Basse | ⬜ À faire |
+| DOC-008 | Créer une entrée ADR pour la règle "V2 en lecture seule sur V1" | Moyenne | ⬜ À faire |
 
 ---
 
@@ -245,8 +245,8 @@ Rédiger le document `02.5.V2_Contrat_des_Donnees.md`.
 | Dictionnaire des données V2 | ✅ |
 | Schéma physique V2 | ✅ |
 | Mapping V2 | ✅ |
-| **Contrat des données V2** | 🟡 En cours |
-| Architecture workflows V2 | ⬜ |
+| Contrat des données V2 | ✅ |
+| **Architecture workflows V2** | 🟡 En cours |
 | Spécification composants V2 | ⬜ |
 | Développement V2 | ⬜ |
 | Tests & validation V2 | ⬜ |
@@ -267,6 +267,7 @@ Rédiger le document `02.5.V2_Contrat_des_Donnees.md`.
 | 2025-11-12 | 📖 **Dictionnaire des données V2 formalisé** | `02.2.V2_Dictionnaire_des_Donnees.md` rédigé et validé — tous les attributs V2 documentés (description, obligation, origine) |
 | 2025-11-12 | 🛠️ **Schéma physique V2 formalisé** | `02.3.V2_Schema_Physique_des_Donnees.md` rédigé et validé — 9 tables V2 prêtes à créer dans Supabase, DDL complet |
 | 2025-11-12 | 🔗 **Mapping des données V2 formalisé** | `02.4.V2_Mapping_des_Donnees.md` rédigé et validé — correspondance objet↔table exhaustive, composants écrivains identifiés |
+| 2025-11-12 | 📜 **Contrat des données V2 formalisé** | `02.5.V2_Contrat_des_Donnees.md` rédigé et validé — garanties d'échange V2/V2, V2/V1, V2/Dashboard, V2/Catalogue, invariants et résilience |
 
 ---
 
