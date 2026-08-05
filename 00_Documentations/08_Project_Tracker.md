@@ -22,51 +22,50 @@ Il pilote uniquement l'avancement du projet.
 
 - **Projet** : Assistant IA pour Créateurs de Contenu
 - **Version courante** : **V2 — Modélisation des données en cours**
-- **Statut global** : 🟢 V1 STABLE verrouillée. Modèle conceptuel et dictionnaire V2 formalisés. Passage au schéma physique V2.
-- **Phase actuelle** : Modélisation des données de la V2 (niveau schéma physique)
+- **Statut global** : 🟢 V1 STABLE verrouillée. Schéma physique V2 formalisé (DDL prêt à exécuter). Passage au mapping des données V2.
+- **Phase actuelle** : Modélisation des données de la V2 (niveau mapping)
 - **Dernière mise à jour** : 12 novembre 2025
 
 ---
 
 ## 🎯 Tâche active
 
-- **ID** : `V2-005`
-- **Titre** : Schéma Physique des Données V2 — traduire le modèle conceptuel V2 en tables PostgreSQL/Supabase, avec leurs types, contraintes et relations.
+- **ID** : `V2-006`
+- **Titre** : Mapping des Données V2 — établir la correspondance précise entre les objets métier V2 et les tables physiques V2, ainsi qu'entre les données produites par les composants V2 et les colonnes cibles.
 - **Priorité** : P0
 - **Statut** : 🟡 En cours
 
 **Livrables attendus** :
-1. Pour chaque objet V2 (Dossier de Production, Scène, Plan, Prompt Image, Prompt Animation, Description de Publication, Outil, Checklist, Étape de Checklist), définir une table avec ses colonnes, types et contraintes.
-2. Définition claire des clés primaires et étrangères, y compris les relations avec les tables V1 existantes (`campagnes`, `scripts`).
-3. Définition des contraintes d'unicité, CHECK et cascade nécessaires à l'intégrité métier.
-4. Écriture du DDL SQL prêt à être exécuté dans Supabase.
-5. Prise en compte des anomalies physiques V1 (typages BIGINT vs INTEGER) pour éviter les mêmes erreurs en V2.
-6. Rédaction du document `02.3.V2_Schema_Physique_des_Donnees.md`.
+1. Table de correspondance objet métier V2 ↔ table physique V2 (nom métier ↔ nom réel de la colonne).
+2. Explicitation des transformations éventuelles (ex. `date_creation` métier ↔ `created_at` physique).
+3. Identification claire, pour chaque colonne V2, du composant qui l'écrit et de celui qui la lit.
+4. Explicitation du mapping des références vers les objets V1 (`campagne_id`, `script_id`).
+5. Cohérence avec le modèle conceptuel (`02.1.V2`) et le schéma physique (`02.3.V2`).
+6. Rédaction du document `02.4.V2_Mapping_des_Donnees.md`.
 
 ---
 
 ## 📂 Documents à ouvrir (dans cet ordre uniquement)
 
 1. `08_Project_Tracker.md` (ce document)
-2. `02.1.V2_Modele_de_Donnees.md` — modèle conceptuel V2 (référence directe)
-3. `02.2.V2_Dictionnaire_des_Donnees.md` — dictionnaire V2 (référence directe)
-4. `02.3_Schema_Physique_des_Donnees.md` — schéma physique V1 (référence de style et pour connaître les types existants sur `campagnes`, `scripts`)
-5. `01.V2_Besoin_Client.md` — pour rappel du besoin
-6. `02.V2_Architecture_metier.md` — pour rappel du positionnement V1/V2
+2. `02.1.V2_Modele_de_Donnees.md` — vocabulaire métier V2
+3. `02.2.V2_Dictionnaire_des_Donnees.md` — définition des attributs V2
+4. `02.3.V2_Schema_Physique_des_Donnees.md` — schéma physique V2 (référence directe)
+5. `02.4_Mapping_des_Donnees.md` — mapping V1 (référence de style)
 
 ---
 
 ## ✅ Critères de fin de séance
 
 La séance est terminée uniquement si :
-- toutes les tables V2 sont définies avec leurs colonnes, types et contraintes ;
-- les clés étrangères vers les tables V1 (`campagnes`, `scripts`) sont explicites et cohérentes en type ;
-- les contraintes d'intégrité (unicité, CHECK, cascades) sont posées de façon cohérente avec les règles métier ;
-- le DDL SQL est complet et prêt à exécuter dans Supabase ;
-- les décisions de typage (INTEGER, BIGINT, VARCHAR, TEXT, etc.) sont expliquées ;
-- les anomalies physiques V1 sont documentées et ne sont pas répliquées en V2 ;
-- le document `02.3.V2_Schema_Physique_des_Donnees.md` est créé et intégré à `00_Documentations/` ;
-- le Project Tracker est mis à jour (statut V2-005, prochaine tâche définie).
+- chaque objet métier V2 est mis en correspondance explicite avec sa table physique ;
+- chaque attribut métier V2 est mis en correspondance explicite avec sa colonne physique ;
+- les écarts de nommage (métier ↔ physique) sont documentés (ex. `date_creation` ↔ `created_at`) ;
+- pour chaque colonne V2, le composant écrivain et les composants lecteurs sont identifiés ;
+- le mapping des références vers les objets V1 est explicite ;
+- aucune technologie d'implémentation (workflow n8n, API) n'apparaît dans le document ;
+- le document `02.4.V2_Mapping_des_Donnees.md` est créé et intégré à `00_Documentations/` ;
+- le Project Tracker est mis à jour (statut V2-006, prochaine tâche définie).
 
 ---
 
@@ -162,6 +161,7 @@ Accessible depuis un **tableau de bord personnel**.
 - ✅ Structure visuelle : **Scène → N Plans → 1 Prompt Image + 1 Prompt Animation par plan** (permet le rythme visuel réel du montage vidéo court)
 - ✅ 1 Script V1 peut donner lieu à N Dossiers de Production (pour tester plusieurs outils)
 - ✅ Traçabilité : les prompts conservent l'`outil_id` pour lequel ils ont été générés
+- ✅ Conventions physiques V2 : préfixe `v2_`, PK en BIGINT, timestamps en `timestamptz`, VARCHAR/TEXT selon règle
 
 ### Ce que la V2 n'est PAS
 
@@ -186,8 +186,8 @@ Accessible depuis un **tableau de bord personnel**.
 | `02.V2_Architecture_metier` | ✅ |
 | `02.1.V2_Modele_de_Donnees` | ✅ |
 | `02.2.V2_Dictionnaire_des_Donnees` | ✅ |
-| `02.3.V2_Schema_Physique_des_Donnees` | 🟡 En cours (V2-005) |
-| `02.4.V2_Mapping_des_Donnees` | ⬜ |
+| `02.3.V2_Schema_Physique_des_Donnees` | ✅ |
+| `02.4.V2_Mapping_des_Donnees` | 🟡 En cours (V2-006) |
 | `02.5.V2_Contrat_des_Donnees` | ⬜ |
 | `03.V2_Architecture_des_Workflows` | ⬜ |
 | `04.V2_Specification_des_Composants` | ⬜ |
@@ -198,13 +198,9 @@ Accessible depuis un **tableau de bord personnel**.
 
 ## ➜ Prochaine tâche
 
-**V2-005 — Schéma Physique des Données V2**
-Traduire le modèle conceptuel V2 en tables PostgreSQL/Supabase avec leurs types, contraintes et relations, en veillant à :
-- garantir la cohérence de typage avec les tables V1 (éviter les mismatchs BIGINT/INTEGER) ;
-- documenter clairement les cascades, unicité et CHECK ;
-- fournir un DDL SQL directement exécutable dans Supabase.
-
-Rédiger le document `02.3.V2_Schema_Physique_des_Donnees.md`.
+**V2-006 — Mapping des Données V2**
+Établir la correspondance précise entre les objets métier V2 et les tables physiques V2, identifier pour chaque colonne son composant écrivain et ses composants lecteurs, et documenter les écarts de nommage entre couche métier et couche physique.
+Rédiger le document `02.4.V2_Mapping_des_Donnees.md`.
 
 ---
 
@@ -217,6 +213,7 @@ Rédiger le document `02.3.V2_Schema_Physique_des_Donnees.md`.
 | DOC-004 | Créer une entrée ADR pour la décision d'architecture V2 (E3 + E3-a) | Moyenne | ⬜ À faire |
 | DOC-005 | Créer une entrée ADR pour la décision "Scène → Plans" (rythme visuel du montage) | Basse | ⬜ À faire |
 | DOC-006 | Créer une entrée ADR pour la décision "outil_id conservé dans les prompts" | Basse | ⬜ À faire |
+| DOC-007 | Créer une entrée ADR pour les conventions physiques V2 (préfixe `v2_`, BIGINT, timestamptz) | Basse | ⬜ À faire |
 
 ---
 
@@ -237,8 +234,8 @@ Rédiger le document `02.3.V2_Schema_Physique_des_Donnees.md`.
 | Architecture métier V2 | ✅ |
 | Modèle conceptuel V2 | ✅ |
 | Dictionnaire des données V2 | ✅ |
-| **Schéma physique V2** | 🟡 En cours |
-| Mapping V2 | ⬜ |
+| Schéma physique V2 | ✅ |
+| **Mapping V2** | 🟡 En cours |
 | Contrat des données V2 | ⬜ |
 | Architecture workflows V2 | ⬜ |
 | Spécification composants V2 | ⬜ |
@@ -259,6 +256,7 @@ Rédiger le document `02.3.V2_Schema_Physique_des_Donnees.md`.
 | 2025-11-12 | 🏛️ **Architecture métier V2 formalisée** | `02.V2_Architecture_metier.md` rédigé et validé — flux, objets, règles et positionnement V1/V2 actés |
 | 2025-11-12 | 🧩 **Modèle conceptuel V2 formalisé** | `02.1.V2_Modele_de_Donnees.md` rédigé et validé — 9 nouveaux objets métier introduits, dont l'objet Plan pour respecter le rythme visuel réel |
 | 2025-11-12 | 📖 **Dictionnaire des données V2 formalisé** | `02.2.V2_Dictionnaire_des_Donnees.md` rédigé et validé — tous les attributs V2 documentés (description, obligation, origine) |
+| 2025-11-12 | 🛠️ **Schéma physique V2 formalisé** | `02.3.V2_Schema_Physique_des_Donnees.md` rédigé et validé — 9 tables V2 prêtes à créer dans Supabase, DDL complet |
 
 ---
 
