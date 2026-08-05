@@ -21,56 +21,68 @@ Il pilote uniquement l'avancement du projet.
 ## 📌 État du projet
 
 - **Projet** : Assistant IA pour Créateurs de Contenu
-- **Version courante** : **V2 — Architecture des workflows en cours**
-- **Statut global** : 🟢 V1 STABLE verrouillée. Modélisation complète des données V2 terminée (02.1 → 02.5). Passage à l'architecture des workflows V2.
-- **Phase actuelle** : Conception des workflows de la V2
+- **Version courante** : **V2 — Architecture des workflows terminée.
+  Passage à la spécification des composants.**
+- **Statut global** : 🟢 V1 STABLE verrouillée. Modélisation complète
+  des données V2 terminée (02.1 → 02.5). Architecture des workflows V2
+  formalisée (03.V2). Passage à la spécification des composants V2.
+- **Phase actuelle** : Conception des composants de la V2
 - **Dernière mise à jour** : 12 novembre 2025
 
 ---
 
 ## 🎯 Tâche active
 
-- **ID** : `V2-008`
-- **Titre** : Architecture des Workflows V2 — concevoir l'orchestration technique des composants V2 : identification des workflows, séquence des étapes, gestion des erreurs, articulation avec les workflows V1 existants.
+- **ID** : `V2-009`
+- **Titre** : Spécification des Composants V2
 - **Priorité** : P0
-- **Statut** : 🟡 En cours
+- **Statut** : ⬜ À démarrer
 
 **Livrables attendus** :
-1. Identification des workflows V2 nécessaires (workflow principal V2, éventuel workflow d'erreur V2, workflow de génération de kit).
-2. Formalisation de la séquence des étapes de chaque workflow (nœuds C-V2-01, C-V2-02, etc., par cohérence avec le nommage V1).
-3. Description de la manière dont les workflows V2 déclenchent et réutilisent les workflows V1 (collecte, analyse, script).
-4. Formalisation de la gestion des erreurs V2 (comportement en cas d'échec d'un générateur, résilience).
-5. Explicitation de la corrélation entre exécutions V2 et données produites (traçabilité).
-6. Rédaction du document `03.V2_Architecture_des_Workflows.md`.
+1. Identification et description de chaque composant V2 (workflows,
+   nœuds IA, catalogue outils, tableau de bord).
+2. Spécification des interfaces entre composants (entrées, sorties,
+   contrats d'appel).
+3. Spécification des prompts IA V2 (Générateur Scènes, Générateur
+   Plans, Générateur Prompts Image, Générateur Prompts Animation)
+   avec leur structure JSON de sortie attendue.
+4. Spécification du catalogue outils (structure, règles de validation,
+   liste initiale gratuits/freemium/payants).
+5. Rédaction du document `04.V2_Specification_des_Composants.md`.
 
 ---
 
 ## 📂 Documents à ouvrir (dans cet ordre uniquement)
 
 1. `08_Project_Tracker.md` (ce document)
-2. `02.V2_Architecture_metier.md` — flux métier V2 (référence pour la traduction en workflows)
-3. `02.5.V2_Contrat_des_Donnees.md` — contrats entre composants (référence directe pour les nœuds)
-4. `02.4.V2_Mapping_des_Donnees.md` — pour savoir quelle table chaque nœud écrit
-5. `03_Architecture_des_Workflows.md` — architecture V1 (référence de style et pour comprendre la réutilisation)
+2. `03.V2_Architecture_des_Workflows.md` — référence directe pour
+   les composants à spécifier (nœuds C-V2-01 → C-V2-19, E-V2-01 → E-V2-04)
+3. `02.V2_Architecture_metier.md` — flux métier V2 (objets et règles)
+4. `02.5.V2_Contrat_des_Donnees.md` — contrats entre composants
+5. `02.3.V2_Schema_Physique_des_Donnees.md` — tables V2 écrites
+   par chaque composant
 
 ---
 
 ## ✅ Critères de fin de séance
 
 La séance est terminée uniquement si :
-- les workflows V2 nécessaires sont identifiés et nommés ;
-- la séquence des nœuds de chaque workflow est formalisée avec un nommage cohérent (C-V2-XX) ;
-- l'articulation avec les workflows V1 (déclenchement, réutilisation, attente) est décrite ;
-- la gestion des erreurs V2 est spécifiée (comportement isolé par générateur, statut de dossier, journalisation) ;
-- la traçabilité entre exécutions V2 et données produites est explicitée ;
-- le document `03.V2_Architecture_des_Workflows.md` est créé et intégré à `00_Documentations/` ;
-- le Project Tracker est mis à jour (statut V2-008, prochaine tâche définie).
+- tous les composants V2 sont identifiés et décrits fonctionnellement ;
+- les interfaces d'entrée/sortie de chaque composant sont spécifiées ;
+- les prompts IA V2 (Scènes, Plans, Prompts Image, Prompts Animation)
+  sont rédigés avec leur structure JSON de sortie ;
+- le catalogue outils est spécifié (structure + liste initiale) ;
+- le document `04.V2_Specification_des_Composants.md` est créé
+  et intégré à `00_Documentations/` ;
+- le Project Tracker est mis à jour (statut V2-009, prochaine
+  tâche définie).
 
 ---
 
 ## 🔒 Avancement V1 STABLE (verrouillé)
 
-La V1 STABLE est **livrée, testée et documentée**. Aucune modification de la V1 n'est prévue.
+La V1 STABLE est **livrée, testée et documentée**.
+Aucune modification de la V1 n'est prévue.
 
 ### Documentation V1
 
@@ -112,7 +124,8 @@ La V1 STABLE est **livrée, testée et documentée**. Aucune modification de la 
 - Historiser l'ensemble (contenus, analyses, scripts) sans doublon ;
 - Détecter automatiquement la fin normale d'une campagne (`TERMINEE`) ;
 - Basculer automatiquement en `ERREUR` et journaliser tout incident ;
-- Tracer la chaîne complète `campagne_id → contenu_id → analyse_id → script_id`.
+- Tracer la chaîne complète
+  `campagne_id → contenu_id → analyse_id → script_id`.
 
 ---
 
@@ -121,7 +134,9 @@ La V1 STABLE est **livrée, testée et documentée**. Aucune modification de la 
 ### Objectif de la V2
 
 **Résoudre un vrai problème de créateur de contenu.**
-La V2 apporte le contexte d'exécution qui manque à la V1 : transformer un script en dossier de production complet, prêt à exécuter dans les outils IA du créateur.
+La V2 apporte le contexte d'exécution qui manque à la V1 : transformer
+un script en dossier de production complet, prêt à exécuter dans les
+outils IA du créateur.
 
 ### Persona ciblé
 
@@ -139,8 +154,10 @@ Fournir à chaque campagne un **dossier de production complet** :
 - 1 script vidéo complet ;
 - 1 découpage en scènes ;
 - N plans par scène (selon durée et contenu) ;
-- N prompts images optimisés pour l'**outil choisi par le créateur** (1 par plan) ;
-- N prompts animations optimisés pour l'**outil choisi par le créateur** (1 par plan) ;
+- N prompts images optimisés pour l'**outil choisi par le créateur**
+  (1 par plan) ;
+- N prompts animations optimisés pour l'**outil choisi par le créateur**
+  (1 par plan) ;
 - 1 description par plateforme de publication ;
 - 1 liste de hashtags par plateforme.
 
@@ -150,20 +167,41 @@ Accessible depuis un **tableau de bord personnel**.
 
 - ✅ Persona : Side-hustler ambitieux (Persona B)
 - ✅ Axe : Production assistée (pas de génération auto d'images/vidéos)
-- ✅ 1 seul script ultra-complet par campagne (choisi par le créateur parmi les scripts V1)
+- ✅ 1 seul script ultra-complet par campagne (choisi par le créateur
+  parmi les scripts V1)
 - ✅ Choix des outils par le créateur au lancement de la campagne
-- ✅ Un seul outil d'image + un seul outil d'animation par campagne (cohérence visuelle)
-- ✅ Catalogue d'outils intégré (gratuits, freemium, payants — avec spécificités)
-- ✅ Interface : tableau de bord personnel (pas de SaaS, pas de multi-utilisateurs)
-- ✅ Usage : solo, open source, démonstration de résolution de problème métier
-- ✅ Architecture : **V2 lit les données V1 (base partagée), réutilise les workflows V1, écrit dans ses propres tables V2** (E3 + E3-a)
-- ✅ Structure visuelle : **Scène → N Plans → 1 Prompt Image + 1 Prompt Animation par plan** (permet le rythme visuel réel du montage vidéo court)
-- ✅ 1 Script V1 peut donner lieu à N Dossiers de Production (pour tester plusieurs outils)
-- ✅ Traçabilité : les prompts conservent l'`outil_id` pour lequel ils ont été générés
-- ✅ Conventions physiques V2 : préfixe `v2_`, PK en BIGINT, timestamps en `timestamptz`, VARCHAR/TEXT selon règle
-- ✅ Unicité d'écriture : chaque colonne V2 possède un seul composant écrivain (règle de mapping)
-- ✅ Contrats V2 : la V2 ne modifie **jamais** les données V1 (règle lecture seule)
-- ✅ Résilience : défaillance d'un générateur (prompt, description) → n'impacte pas les autres, dossier reste en `EN_COURS`
+- ✅ Un seul outil d'image + un seul outil d'animation par campagne
+  (cohérence visuelle)
+- ✅ Catalogue d'outils intégré (gratuits, freemium, payants —
+  avec spécificités)
+- ✅ Interface : tableau de bord personnel (pas de SaaS,
+  pas de multi-utilisateurs)
+- ✅ Usage : solo, open source, démonstration de résolution
+  de problème métier
+- ✅ Architecture : **V2 lit les données V1 (base partagée), réutilise
+  les workflows V1, écrit dans ses propres tables V2** (E3 + E3-a)
+- ✅ Structure visuelle : **Scène → N Plans → 1 Prompt Image +
+  1 Prompt Animation par plan** (permet le rythme visuel réel
+  du montage vidéo court)
+- ✅ 1 Script V1 peut donner lieu à N Dossiers de Production
+  (pour tester plusieurs outils)
+- ✅ Traçabilité : les prompts conservent l'`outil_id` pour lequel
+  ils ont été générés
+- ✅ Conventions physiques V2 : préfixe `v2_`, PK en BIGINT,
+  timestamps en `timestamptz`, VARCHAR/TEXT selon règle
+- ✅ Unicité d'écriture : chaque colonne V2 possède un seul composant
+  écrivain (règle de mapping)
+- ✅ Contrats V2 : la V2 ne modifie **jamais** les données V1
+  (règle lecture seule)
+- ✅ Résilience : défaillance d'un générateur (prompt, description)
+  → n'impacte pas les autres, dossier reste en `EN_COURS`
+- ✅ Architecture des workflows V2 : 5 workflows modulaires
+  (V2-ORCH, V2-SCENE, V2-PLAN, V2-IMG, V2-ANIM) + 1 workflow
+  d'erreur isolé (V2-ERR), nœuds C-V2-01 → C-V2-19 + E-V2-01 → E-V2-04
+- ✅ Frontière V1/V2 : nœud unique C-V2-03 (lecture JOIN sur
+  `scripts + analyses + contenus`)
+- ✅ Séquentialité Image → Animation par plan (robustesse
+  avant performance)
 
 ### Ce que la V2 n'est PAS
 
@@ -175,9 +213,11 @@ Accessible depuis un **tableau de bord personnel**.
 
 ### Axes futurs (V3+, à étudier)
 
-- ⬜ Axe Intelligence Stratégique (recommandations, angles viraux, analyse concurrentielle)
+- ⬜ Axe Intelligence Stratégique (recommandations, angles viraux,
+  analyse concurrentielle)
 - ⬜ Axe Publication & Suivi de performance
-- ⬜ Axe Pipeline complet (génération auto des visuels + montage automatisé)
+- ⬜ Axe Pipeline complet (génération auto des visuels +
+  montage automatisé)
 - ⬜ Passage éventuel en SaaS multi-utilisateurs
 
 ### Documentation V2
@@ -191,8 +231,8 @@ Accessible depuis un **tableau de bord personnel**.
 | `02.3.V2_Schema_Physique_des_Donnees` | ✅ |
 | `02.4.V2_Mapping_des_Donnees` | ✅ |
 | `02.5.V2_Contrat_des_Donnees` | ✅ |
-| `03.V2_Architecture_des_Workflows` | 🟡 En cours (V2-008) |
-| `04.V2_Specification_des_Composants` | ⬜ |
+| `03.V2_Architecture_des_Workflows` | ✅ |
+| `04.V2_Specification_des_Composants` | 🟡 En cours (V2-009) |
 | `05.V2_Implementation_Technique` | ⬜ |
 | `07.V2_Plan_de_tests` | ⬜ |
 
@@ -200,15 +240,18 @@ Accessible depuis un **tableau de bord personnel**.
 
 ## ➜ Prochaine tâche
 
-**V2-008 — Architecture des Workflows V2**
-Concevoir l'orchestration technique des composants V2 :
-- identifier les workflows V2 à mettre en place ;
-- formaliser la séquence des nœuds (C-V2-01, C-V2-02, ...) ;
-- décrire la réutilisation des workflows V1 (collecte, analyse, script) ;
-- spécifier la gestion des erreurs V2 (résilience isolée par générateur) ;
-- garantir la traçabilité exécution ↔ données produites.
+**V2-009 — Spécification des Composants V2**
 
-Rédiger le document `03.V2_Architecture_des_Workflows.md`.
+Décrire précisément chaque composant V2 identifié dans
+`03.V2_Architecture_des_Workflows.md` :
+- spécifier les entrées et sorties de chaque nœud ;
+- rédiger les prompts IA (Scènes, Plans, Prompts Image,
+  Prompts Animation) avec leur structure JSON attendue ;
+- spécifier le catalogue outils (structure, règles de validation,
+  liste initiale) ;
+- documenter les interfaces entre composants.
+
+Rédiger le document `04.V2_Specification_des_Composants.md`.
 
 ---
 
@@ -223,6 +266,7 @@ Rédiger le document `03.V2_Architecture_des_Workflows.md`.
 | DOC-006 | Créer une entrée ADR pour la décision "outil_id conservé dans les prompts" | Basse | ⬜ À faire |
 | DOC-007 | Créer une entrée ADR pour les conventions physiques V2 (préfixe `v2_`, BIGINT, timestamptz) | Basse | ⬜ À faire |
 | DOC-008 | Créer une entrée ADR pour la règle "V2 en lecture seule sur V1" | Moyenne | ⬜ À faire |
+| DOC-009 | Créer une entrée ADR pour la décision "workflows modulaires V2 + résilience isolée par plan" | Moyenne | ⬜ À faire |
 
 ---
 
@@ -246,8 +290,8 @@ Rédiger le document `03.V2_Architecture_des_Workflows.md`.
 | Schéma physique V2 | ✅ |
 | Mapping V2 | ✅ |
 | Contrat des données V2 | ✅ |
-| **Architecture workflows V2** | 🟡 En cours |
-| Spécification composants V2 | ⬜ |
+| **Architecture workflows V2** | ✅ |
+| Spécification composants V2 | 🟡 En cours |
 | Développement V2 | ⬜ |
 | Tests & validation V2 | ⬜ |
 | Déploiement V2 | ⬜ |
@@ -268,13 +312,18 @@ Rédiger le document `03.V2_Architecture_des_Workflows.md`.
 | 2025-11-12 | 🛠️ **Schéma physique V2 formalisé** | `02.3.V2_Schema_Physique_des_Donnees.md` rédigé et validé — 9 tables V2 prêtes à créer dans Supabase, DDL complet |
 | 2025-11-12 | 🔗 **Mapping des données V2 formalisé** | `02.4.V2_Mapping_des_Donnees.md` rédigé et validé — correspondance objet↔table exhaustive, composants écrivains identifiés |
 | 2025-11-12 | 📜 **Contrat des données V2 formalisé** | `02.5.V2_Contrat_des_Donnees.md` rédigé et validé — garanties d'échange V2/V2, V2/V1, V2/Dashboard, V2/Catalogue, invariants et résilience |
+| 2025-11-12 | 🔀 **Architecture des workflows V2 formalisée** | `03.V2_Architecture_des_Workflows.md` rédigé et validé — 5 workflows modulaires + V2-ERR, nœuds C-V2-01→C-V2-19, frontière V1/V2 via C-V2-03, résilience isolée par plan actée |
 
 ---
 
 ## 🧭 Règles de gouvernance du tracker
 
 - Le tracker est **le seul document qui bouge à chaque séance**.
-- Toute décision d'architecture prise en séance → à consigner dans `06_Journal_des_Decisions_d_Architecture.md`.
-- Toute modification de la V1 STABLE → refusée par défaut, sauf bug critique documenté.
-- La V2 se construit dans **de nouveaux fichiers** dédiés (`01.V2_`, `02.V2_`, etc.), pour préserver la référence V1.
-- Les critères de fin de séance doivent être remplis avant de clôturer une session.
+- Toute décision d'architecture prise en séance → à consigner dans
+  `06_Journal_des_Decisions_d_Architecture.md`.
+- Toute modification de la V1 STABLE → refusée par défaut,
+  sauf bug critique documenté.
+- La V2 se construit dans **de nouveaux fichiers** dédiés
+  (`01.V2_`, `02.V2_`, etc.), pour préserver la référence V1.
+- Les critères de fin de séance doivent être remplis avant
+  de clôturer une session.
