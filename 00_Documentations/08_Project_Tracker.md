@@ -22,50 +22,53 @@ Il pilote uniquement l'avancement du projet.
 
 - **Projet** : Assistant IA pour Créateurs de Contenu
 - **Version courante** : **V2 — Modélisation des données en cours**
-- **Statut global** : 🟢 V1 STABLE verrouillée. Schéma physique V2 formalisé (DDL prêt à exécuter). Passage au mapping des données V2.
-- **Phase actuelle** : Modélisation des données de la V2 (niveau mapping)
+- **Statut global** : 🟢 V1 STABLE verrouillée. Mapping des données V2 formalisé. Passage au contrat des données V2.
+- **Phase actuelle** : Modélisation des données de la V2 (niveau contrat)
 - **Dernière mise à jour** : 12 novembre 2025
 
 ---
 
 ## 🎯 Tâche active
 
-- **ID** : `V2-006`
-- **Titre** : Mapping des Données V2 — établir la correspondance précise entre les objets métier V2 et les tables physiques V2, ainsi qu'entre les données produites par les composants V2 et les colonnes cibles.
+- **ID** : `V2-007`
+- **Titre** : Contrat des Données V2 — formaliser les garanties d'échange de données entre les composants V2 et entre les composants V2 et V1, à un niveau abstrait indépendant de toute technologie.
 - **Priorité** : P0
 - **Statut** : 🟡 En cours
 
 **Livrables attendus** :
-1. Table de correspondance objet métier V2 ↔ table physique V2 (nom métier ↔ nom réel de la colonne).
-2. Explicitation des transformations éventuelles (ex. `date_creation` métier ↔ `created_at` physique).
-3. Identification claire, pour chaque colonne V2, du composant qui l'écrit et de celui qui la lit.
-4. Explicitation du mapping des références vers les objets V1 (`campagne_id`, `script_id`).
-5. Cohérence avec le modèle conceptuel (`02.1.V2`) et le schéma physique (`02.3.V2`).
-6. Rédaction du document `02.4.V2_Mapping_des_Donnees.md`.
+1. Définition du contrat d'entrée principal V2 (création d'une campagne enrichie avec choix des outils).
+2. Définition des contrats de sortie entre les composants V2 (découpage → plans → prompts, etc.).
+3. Formalisation du contrat V2 ↔ V1 (garanties minimales attendues des données V1 pour que la V2 fonctionne).
+4. Formalisation du contrat V2 ↔ Dashboard (agrégation des données à exposer).
+5. Formalisation du contrat V2 ↔ Catalogue d'Outils (structure attendue).
+6. Explicitation des règles de validation et des invariants à respecter.
+7. Rédaction du document `02.5.V2_Contrat_des_Donnees.md`.
 
 ---
 
 ## 📂 Documents à ouvrir (dans cet ordre uniquement)
 
 1. `08_Project_Tracker.md` (ce document)
-2. `02.1.V2_Modele_de_Donnees.md` — vocabulaire métier V2
-3. `02.2.V2_Dictionnaire_des_Donnees.md` — définition des attributs V2
-4. `02.3.V2_Schema_Physique_des_Donnees.md` — schéma physique V2 (référence directe)
-5. `02.4_Mapping_des_Donnees.md` — mapping V1 (référence de style)
+2. `02.1.V2_Modele_de_Donnees.md` — objets métier V2
+3. `02.2.V2_Dictionnaire_des_Donnees.md` — attributs V2
+4. `02.3.V2_Schema_Physique_des_Donnees.md` — schéma physique V2
+5. `02.4.V2_Mapping_des_Donnees.md` — mapping V2 (référence directe)
+6. `02.5_Contrat_des_Donnees.md` — contrat V1 (référence de style)
 
 ---
 
 ## ✅ Critères de fin de séance
 
 La séance est terminée uniquement si :
-- chaque objet métier V2 est mis en correspondance explicite avec sa table physique ;
-- chaque attribut métier V2 est mis en correspondance explicite avec sa colonne physique ;
-- les écarts de nommage (métier ↔ physique) sont documentés (ex. `date_creation` ↔ `created_at`) ;
-- pour chaque colonne V2, le composant écrivain et les composants lecteurs sont identifiés ;
-- le mapping des références vers les objets V1 est explicite ;
-- aucune technologie d'implémentation (workflow n8n, API) n'apparaît dans le document ;
-- le document `02.4.V2_Mapping_des_Donnees.md` est créé et intégré à `00_Documentations/` ;
-- le Project Tracker est mis à jour (statut V2-006, prochaine tâche définie).
+- le contrat d'entrée principal V2 est formalisé (structure attendue à la création d'une campagne enrichie) ;
+- les contrats de sortie entre les composants V2 sont explicites ;
+- les garanties minimales attendues des données V1 par la V2 sont documentées ;
+- le contrat d'exposition vers le Dashboard est décrit ;
+- la structure du catalogue d'outils est décrite comme un contrat clair ;
+- les règles de validation sont exhaustives ;
+- aucune technologie d'implémentation (HTTP, JSON, SQL, n8n) n'apparaît dans le document ;
+- le document `02.5.V2_Contrat_des_Donnees.md` est créé et intégré à `00_Documentations/` ;
+- le Project Tracker est mis à jour (statut V2-007, prochaine tâche définie).
 
 ---
 
@@ -162,6 +165,7 @@ Accessible depuis un **tableau de bord personnel**.
 - ✅ 1 Script V1 peut donner lieu à N Dossiers de Production (pour tester plusieurs outils)
 - ✅ Traçabilité : les prompts conservent l'`outil_id` pour lequel ils ont été générés
 - ✅ Conventions physiques V2 : préfixe `v2_`, PK en BIGINT, timestamps en `timestamptz`, VARCHAR/TEXT selon règle
+- ✅ Unicité d'écriture : chaque colonne V2 possède un seul composant écrivain (règle de mapping)
 
 ### Ce que la V2 n'est PAS
 
@@ -187,8 +191,8 @@ Accessible depuis un **tableau de bord personnel**.
 | `02.1.V2_Modele_de_Donnees` | ✅ |
 | `02.2.V2_Dictionnaire_des_Donnees` | ✅ |
 | `02.3.V2_Schema_Physique_des_Donnees` | ✅ |
-| `02.4.V2_Mapping_des_Donnees` | 🟡 En cours (V2-006) |
-| `02.5.V2_Contrat_des_Donnees` | ⬜ |
+| `02.4.V2_Mapping_des_Donnees` | ✅ |
+| `02.5.V2_Contrat_des_Donnees` | 🟡 En cours (V2-007) |
 | `03.V2_Architecture_des_Workflows` | ⬜ |
 | `04.V2_Specification_des_Composants` | ⬜ |
 | `05.V2_Implementation_Technique` | ⬜ |
@@ -198,9 +202,14 @@ Accessible depuis un **tableau de bord personnel**.
 
 ## ➜ Prochaine tâche
 
-**V2-006 — Mapping des Données V2**
-Établir la correspondance précise entre les objets métier V2 et les tables physiques V2, identifier pour chaque colonne son composant écrivain et ses composants lecteurs, et documenter les écarts de nommage entre couche métier et couche physique.
-Rédiger le document `02.4.V2_Mapping_des_Donnees.md`.
+**V2-007 — Contrat des Données V2**
+Formaliser les garanties d'échange de données :
+- entre les composants V2 ;
+- entre la V2 et la V1 (données lues) ;
+- entre la V2 et le Dashboard (données exposées) ;
+- entre la V2 et le Catalogue d'Outils.
+
+Rédiger le document `02.5.V2_Contrat_des_Donnees.md`.
 
 ---
 
@@ -235,8 +244,8 @@ Rédiger le document `02.4.V2_Mapping_des_Donnees.md`.
 | Modèle conceptuel V2 | ✅ |
 | Dictionnaire des données V2 | ✅ |
 | Schéma physique V2 | ✅ |
-| **Mapping V2** | 🟡 En cours |
-| Contrat des données V2 | ⬜ |
+| Mapping V2 | ✅ |
+| **Contrat des données V2** | 🟡 En cours |
 | Architecture workflows V2 | ⬜ |
 | Spécification composants V2 | ⬜ |
 | Développement V2 | ⬜ |
@@ -257,6 +266,7 @@ Rédiger le document `02.4.V2_Mapping_des_Donnees.md`.
 | 2025-11-12 | 🧩 **Modèle conceptuel V2 formalisé** | `02.1.V2_Modele_de_Donnees.md` rédigé et validé — 9 nouveaux objets métier introduits, dont l'objet Plan pour respecter le rythme visuel réel |
 | 2025-11-12 | 📖 **Dictionnaire des données V2 formalisé** | `02.2.V2_Dictionnaire_des_Donnees.md` rédigé et validé — tous les attributs V2 documentés (description, obligation, origine) |
 | 2025-11-12 | 🛠️ **Schéma physique V2 formalisé** | `02.3.V2_Schema_Physique_des_Donnees.md` rédigé et validé — 9 tables V2 prêtes à créer dans Supabase, DDL complet |
+| 2025-11-12 | 🔗 **Mapping des données V2 formalisé** | `02.4.V2_Mapping_des_Donnees.md` rédigé et validé — correspondance objet↔table exhaustive, composants écrivains identifiés |
 
 ---
 
