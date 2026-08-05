@@ -21,51 +21,53 @@ Il pilote uniquement l'avancement du projet.
 ## 📌 État du projet
 
 - **Projet** : Assistant IA pour Créateurs de Contenu
-- **Version courante** : **V2 — Spécification des composants terminée. Passage à l'implémentation technique**
-- **Statut global** : 🟢 V1 STABLE verrouillée. Cadrage, architecture métier, modélisation des données, architecture des workflows, spécification des composants et catalogue outils V2 formalisés. Passage à l'implémentation technique V2.
-- **Phase actuelle** : Préparation de l'implémentation technique de la V2
+- **Version courante** : **V2 — Implémentation technique terminée. Passage au Plan de Tests**
+- **Statut global** : 🟢 V1 STABLE verrouillée. Toute la conception V2 formalisée jusqu'à l'implémentation technique. Schéma V2 corrigé et enrichi. Passage à la phase de tests.
+- **Phase actuelle** : Préparation du Plan de Tests de la V2
 - **Dernière mise à jour** : 12 novembre 2025
 
 ---
 
 ## 🎯 Tâche active
 
-- **ID** : `V2-010`
-- **Titre** : Implémentation Technique V2 — traduire les workflows, composants et contrats V2 en configuration technique exploitable
+- **ID** : `V2-011`
+- **Titre** : Plan de Tests V2 — formaliser la stratégie et les scénarios de tests couvrant la V2 complète
 - **Priorité** : P0
 - **Statut** : ⬜ À démarrer
 
 **Livrables attendus** :
-1. Décrire la configuration technique de chaque workflow V2 (`V2-ORCH`, `V2-SCENE`, `V2-PLAN`, `V2-IMG`, `V2-ANIM`, `V2-ERR`).
-2. Formaliser les opérations techniques par nœud (`webhook`, lecture V1, requêtes SQL, insertions, updates, journalisation).
-3. Traduire les prompts IA V2 en structures prêtes à intégrer dans les workflows techniques.
-4. Décrire la gestion technique des erreurs V2 et la corrélation `execution_id ↔ v2_campagnes ↔ v2_plans ↔ prompts`.
-5. Formaliser les dépendances techniques avec Supabase / PostgreSQL / n8n.
-6. Rédiger le document `05.V2_Implementation_Technique.md`.
+1. Définir la stratégie de tests V2 (types, niveaux, périmètre).
+2. Formaliser les scénarios de tests unitaires par nœud critique.
+3. Formaliser les scénarios de tests d'intégration par workflow.
+4. Formaliser les scénarios de tests bout-en-bout (E2E) sur une campagne complète.
+5. Décrire les jeux de données de test et les prérequis en base.
+6. Décrire les critères de validation, les résultats attendus et les cas d'erreur.
+7. Formaliser la stratégie de non-régression V1/V2.
+8. Rédiger le document `07.V2_Plan_de_tests.md`.
 
 ---
 
 ## 📂 Documents à ouvrir (dans cet ordre uniquement)
 
 1. `08_Project_Tracker.md` (ce document)
-2. `04.V2_Specification_des_Composants.md` — référence directe pour les composants, prompts et structures JSON
-3. `04.1.V2_Catalogue_Outils.md` — conventions de prompt par outil
-4. `03.V2_Architecture_des_Workflows.md` — architecture globale des workflows et séquence C-V2-01 → C-V2-19
-5. `02.3.V2_Schema_Physique_des_Donnees.md` — structure des tables V2 à écrire
-6. `05_Implementation_Technique.md` — référence de style V1 pour la formalisation technique
+2. `05.V2_Implementation_Technique.md` — référence directe pour identifier les nœuds à tester et les requêtes à valider
+3. `03.V2_Architecture_des_Workflows.md` — référence pour les workflows à tester en intégration
+4. `02.5.V2_Contrat_des_Donnees.md` — contrats à valider par les tests
+5. `04.V2_Specification_des_Composants.md` — comportements attendus par composant
+6. `07_Plan_de_tests.md` — référence de style V1
 
 ---
 
 ## ✅ Critères de fin de séance
 
 La séance est terminée uniquement si :
-- les workflows V2 sont traduits en composants techniques concrets ;
-- les opérations de lecture/écriture SQL sont formalisées pour chaque nœud écrivain ;
-- la structure d'appel des modèles IA est précisée pour chaque générateur ;
-- la gestion technique des erreurs V2 est décrite sans ambiguïté ;
-- la traçabilité technique `execution_id → données V2 produites` est explicitée ;
-- le document `05.V2_Implementation_Technique.md` est créé et intégré à `00_Documentations/` ;
-- le Project Tracker est mis à jour (statut V2-010, prochaine tâche définie).
+- la stratégie de tests V2 est formalisée ;
+- les scénarios unitaires, d'intégration et bout-en-bout sont documentés ;
+- les jeux de données de test sont décrits ;
+- les cas d'erreur et la résilience isolée par plan sont testés explicitement ;
+- la non-régression V1/V2 est documentée ;
+- le document `07.V2_Plan_de_tests.md` est créé et intégré à `00_Documentations/` ;
+- le Project Tracker est mis à jour (statut V2-011, prochaine tâche définie).
 
 ---
 
@@ -143,7 +145,8 @@ Fournir à chaque campagne un **dossier de production complet** :
 - N prompts images optimisés pour l'**outil choisi par le créateur** (1 par plan) ;
 - N prompts animations optimisés pour l'**outil choisi par le créateur** (1 par plan) ;
 - 1 description par plateforme de publication ;
-- 1 liste de hashtags par plateforme.
+- 1 liste de hashtags par plateforme ;
+- 1 checklist de production auto-générée.
 
 Accessible depuis un **tableau de bord personnel**.
 
@@ -154,22 +157,26 @@ Accessible depuis un **tableau de bord personnel**.
 - ✅ 1 seul script ultra-complet par campagne (choisi par le créateur parmi les scripts V1)
 - ✅ Choix des outils par le créateur au lancement de la campagne
 - ✅ Un seul outil d'image + un seul outil d'animation par campagne (cohérence visuelle)
-- ✅ Catalogue d'outils intégré (gratuits, freemium, payants — avec spécificités)
+- ✅ Catalogue d'outils intégré (gratuits, freemium, payants)
 - ✅ Interface : tableau de bord personnel (pas de SaaS, pas de multi-utilisateurs)
 - ✅ Usage : solo, open source, démonstration de résolution de problème métier
 - ✅ Architecture : **V2 lit les données V1 (base partagée), réutilise les workflows V1, écrit dans ses propres tables V2** (E3 + E3-a)
-- ✅ Structure visuelle : **Scène → N Plans → 1 Prompt Image + 1 Prompt Animation par plan** (permet le rythme visuel réel du montage vidéo court)
-- ✅ 1 Script V1 peut donner lieu à N Dossiers de Production (pour tester plusieurs outils)
-- ✅ Traçabilité : les prompts conservent l'`outil_id` pour lequel ils ont été générés
-- ✅ Conventions physiques V2 : préfixe `v2_`, PK en BIGINT, timestamps en `timestamptz`, VARCHAR/TEXT selon règle
-- ✅ Unicité d'écriture : chaque colonne V2 possède un seul composant écrivain (règle de mapping)
-- ✅ Contrats V2 : la V2 ne modifie **jamais** les données V1 (règle lecture seule)
-- ✅ Résilience : défaillance d'un générateur (prompt, description) → n'impacte pas les autres, dossier reste en `EN_COURS`
-- ✅ Architecture des workflows V2 : 5 workflows modulaires (`V2-ORCH`, `V2-SCENE`, `V2-PLAN`, `V2-IMG`, `V2-ANIM`) + 1 workflow d'erreur (`V2-ERR`)
+- ✅ Structure visuelle : **Scène → N Plans → 1 Prompt Image + 1 Prompt Animation par plan**
+- ✅ 1 Script V1 peut donner lieu à N Dossiers de Production
+- ✅ Traçabilité : les prompts conservent l'`outil_id`
+- ✅ Conventions physiques V2 : préfixe `v2_`, PK en BIGINT, timestamps en `timestamptz`
+- ✅ Unicité d'écriture : chaque colonne V2 possède un seul composant écrivain
+- ✅ Contrats V2 : la V2 ne modifie **jamais** les données V1
+- ✅ Résilience : défaillance d'un générateur → n'impacte pas les autres plans
+- ✅ Architecture des workflows V2 : 6 workflows modulaires (`V2-ORCH`, `V2-SCENE`, `V2-PLAN`, `V2-IMG`, `V2-ANIM`, `V2-PUB`) + 1 workflow d'erreur (`V2-ERR`)
 - ✅ Frontière V1/V2 : nœud unique `C-V2-03` de lecture JOIN sur `scripts + analyses + contenus`
 - ✅ Séquentialité Image → Animation par plan (robustesse avant performance)
 - ✅ Spécification des composants V2 rédigée : composants, prompts IA, JSON attendus
-- ✅ Catalogue V2 recentré sur des **outils finaux web** ; la stack open source / locale est explicitement sortie du périmètre V2 et réservée à la V3
+- ✅ Catalogue V2 recentré sur des outils finaux web ; stack open source / locale réservée à la V3
+- ✅ Schéma V2 corrigé : `execution_id`, `nb_plans_total`, `nb_plans_traites` sur `v2_dossiers_production` ; `statut` sur `v2_plans` ; création `v2_journal_execution`
+- ✅ Implémentation V2 : 23 nœuds spécifiés avec SQL exact et syntaxe n8n réelle
+- ✅ Barrière de phase C-V2-11b garantissant que `nb_plans_total` est verrouillé avant lancement des prompts
+- ✅ Checklist de production auto-générée à la création du dossier (9 étapes standards)
 
 ### Ce que la V2 n'est PAS
 
@@ -195,29 +202,30 @@ Accessible depuis un **tableau de bord personnel**.
 | `02.V2_Architecture_metier` | ✅ |
 | `02.1.V2_Modele_de_Donnees` | ✅ |
 | `02.2.V2_Dictionnaire_des_Donnees` | ✅ |
-| `02.3.V2_Schema_Physique_des_Donnees` | ✅ |
+| `02.3.V2_Schema_Physique_des_Donnees` | ✅ (enrichi V2-010) |
 | `02.4.V2_Mapping_des_Donnees` | ✅ |
 | `02.5.V2_Contrat_des_Donnees` | ✅ |
 | `03.V2_Architecture_des_Workflows` | ✅ |
 | `04.V2_Specification_des_Composants` | ✅ |
 | `04.1.V2_Catalogue_Outils` | ✅ |
-| `05.V2_Implementation_Technique` | 🟡 En cours (V2-010) |
-| `07.V2_Plan_de_tests` | ⬜ |
+| `05.V2_Implementation_Technique` | ✅ |
+| `07.V2_Plan_de_tests` | 🟡 En cours (V2-011) |
 
 ---
 
 ## ➜ Prochaine tâche
 
-**V2-010 — Implémentation Technique V2**
+**V2-011 — Plan de Tests V2**
 
-Traduire la conception V2 en architecture technique exploitable :
-- détailler les nœuds techniques des workflows V2 ;
-- formaliser les requêtes SQL de lecture et d'écriture ;
-- décrire la traduction des prompts dans les nœuds IA ;
-- spécifier la gestion technique des erreurs et de la journalisation ;
-- garantir la traçabilité complète entre exécution, campagne, scène, plan et prompts.
+Formaliser la stratégie et les scénarios de tests couvrant la V2 complète :
+- tests unitaires par nœud critique ;
+- tests d'intégration par workflow ;
+- tests bout-en-bout sur une campagne complète ;
+- tests de résilience (défaillance d'un plan → autres plans continuent) ;
+- tests de non-régression V1/V2 (lecture seule sur V1) ;
+- tests d'idempotence (relance sans doublon).
 
-Rédiger le document `05.V2_Implementation_Technique.md`.
+Rédiger le document `07.V2_Plan_de_tests.md`.
 
 ---
 
@@ -235,6 +243,10 @@ Rédiger le document `05.V2_Implementation_Technique.md`.
 | DOC-009 | Créer une entrée ADR pour la décision "workflows modulaires V2 + résilience isolée par plan" | Moyenne | ⬜ À faire |
 | DOC-010 | Créer une entrée ADR pour la décision "frontière V1/V2 via un nœud unique C-V2-03" | Moyenne | ⬜ À faire |
 | DOC-011 | Créer une entrée ADR pour la décision "catalogue V2 = outils finaux web, stack locale/open source reportée en V3" | Basse | ⬜ À faire |
+| DOC-012 | Créer une entrée ADR pour la décision "barrière de phase C-V2-11b" | Moyenne | ⬜ À faire |
+| DOC-013 | Créer une entrée ADR pour la décision "clôture automatique du dossier par le workflow (et non par le Dashboard)" | Moyenne | ⬜ À faire |
+| DOC-014 | Mettre à jour `02.4.V2_Mapping_des_Donnees` : ajouter `execution_id`, `nb_plans_total`, `nb_plans_traites` sur `v2_dossiers_production` ; ajouter `statut` sur `v2_plans` ; ajouter la table `v2_journal_execution` | Moyenne | ⬜ À faire |
+| DOC-015 | Mettre à jour `02.5.V2_Contrat_des_Donnees` : intégrer les nouveaux invariants liés à `execution_id`, aux compteurs et au journal V2 | Moyenne | ⬜ À faire |
 
 ---
 
@@ -261,7 +273,9 @@ Rédiger le document `05.V2_Implementation_Technique.md`.
 | Architecture workflows V2 | ✅ |
 | Spécification composants V2 | ✅ |
 | Catalogue outils V2 | ✅ |
-| **Implémentation technique V2** | 🟡 En cours |
+| Implémentation technique V2 | ✅ |
+| **Plan de tests V2** | 🟡 En cours |
+| Développement V2 | ⬜ |
 | Tests & validation V2 | ⬜ |
 | Déploiement V2 | ⬜ |
 
@@ -274,16 +288,17 @@ Rédiger le document `05.V2_Implementation_Technique.md`.
 | 2025-08-03 | 🎉 **V1 STABLE livrée** | Workflow principal C01→C15 + workflow d'erreur E01→E04 opérationnels, testés, sauvegardés |
 | 2025-11 | 📚 Publication GitHub V1 | Repo public, tag `v1.0.0-stable`, release publiée, licence MIT |
 | 2025-11-12 | 📚 Alignement documentaire (DOC-002) | 02.1, 02.2 et 02.3 alignés sur le schéma Supabase réel |
-| 2025-11-12 | 🎯 **Cadrage V2 terminé** | `01.V2_Besoin_Client.md` rédigé et validé — persona et axe métier fixés |
-| 2025-11-12 | 🏛️ **Architecture métier V2 formalisée** | `02.V2_Architecture_metier.md` rédigé et validé — flux, objets, règles et positionnement V1/V2 actés |
-| 2025-11-12 | 🧩 **Modèle conceptuel V2 formalisé** | `02.1.V2_Modele_de_Donnees.md` rédigé et validé — 9 nouveaux objets métier introduits, dont l'objet Plan pour respecter le rythme visuel réel |
-| 2025-11-12 | 📖 **Dictionnaire des données V2 formalisé** | `02.2.V2_Dictionnaire_des_Donnees.md` rédigé et validé — tous les attributs V2 documentés (description, obligation, origine) |
-| 2025-11-12 | 🛠️ **Schéma physique V2 formalisé** | `02.3.V2_Schema_Physique_des_Donnees.md` rédigé et validé — 9 tables V2 prêtes à créer dans Supabase, DDL complet |
-| 2025-11-12 | 🔗 **Mapping des données V2 formalisé** | `02.4.V2_Mapping_des_Donnees.md` rédigé et validé — correspondance objet↔table exhaustive, composants écrivains identifiés |
-| 2025-11-12 | 📜 **Contrat des données V2 formalisé** | `02.5.V2_Contrat_des_Donnees.md` rédigé et validé — garanties d'échange V2/V2, V2/V1, V2/Dashboard, V2/Catalogue, invariants et résilience |
-| 2025-11-12 | 🔀 **Architecture des workflows V2 formalisée** | `03.V2_Architecture_des_Workflows.md` rédigé et validé — 5 workflows modulaires + `V2-ERR`, nœuds `C-V2-01→C-V2-19`, frontière V1/V2 via `C-V2-03`, résilience isolée par plan actée |
-| 2025-11-12 | 🧱 **Spécification des composants V2 formalisée** | `04.V2_Specification_des_Composants.md` rédigé et validé — composants détaillés, prompts IA structurés, JSON de sortie attendus |
-| 2025-11-12 | 🧰 **Catalogue des outils V2 formalisé** | `04.1.V2_Catalogue_Outils.md` rédigé et validé — 4 outils image + 4 outils animation, conventions de prompt, gouvernance du catalogue, frontière V2/V3 explicitée |
+| 2025-11-12 | 🎯 **Cadrage V2 terminé** | `01.V2_Besoin_Client.md` rédigé et validé |
+| 2025-11-12 | 🏛️ **Architecture métier V2 formalisée** | `02.V2_Architecture_metier.md` rédigé et validé |
+| 2025-11-12 | 🧩 **Modèle conceptuel V2 formalisé** | `02.1.V2_Modele_de_Donnees.md` rédigé et validé |
+| 2025-11-12 | 📖 **Dictionnaire des données V2 formalisé** | `02.2.V2_Dictionnaire_des_Donnees.md` rédigé et validé |
+| 2025-11-12 | 🛠️ **Schéma physique V2 formalisé** | `02.3.V2_Schema_Physique_des_Donnees.md` rédigé et validé |
+| 2025-11-12 | 🔗 **Mapping des données V2 formalisé** | `02.4.V2_Mapping_des_Donnees.md` rédigé et validé |
+| 2025-11-12 | 📜 **Contrat des données V2 formalisé** | `02.5.V2_Contrat_des_Donnees.md` rédigé et validé |
+| 2025-11-12 | 🔀 **Architecture des workflows V2 formalisée** | `03.V2_Architecture_des_Workflows.md` — 6 workflows modulaires + `V2-ERR`, résilience isolée par plan |
+| 2025-11-12 | 🧱 **Spécification des composants V2 formalisée** | `04.V2_Specification_des_Composants.md` — composants détaillés, prompts IA structurés |
+| 2025-11-12 | 🧰 **Catalogue des outils V2 formalisé** | `04.1.V2_Catalogue_Outils.md` — 4 outils image + 4 outils animation |
+| 2025-11-12 | ⚙️ **Implémentation technique V2 formalisée** | `05.V2_Implementation_Technique.md` + correctifs `02.3.V2` — 23 nœuds SQL/n8n prêts à implémenter, DDL correctif, workflow V2-PUB ajouté, barrière de phase C-V2-11b, checklist auto-générée |
 
 ---
 
