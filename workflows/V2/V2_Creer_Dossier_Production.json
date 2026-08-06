@@ -1,0 +1,384 @@
+{
+  "name": "V2 — Créateur de Dossier de Production",
+  "nodes": [
+    {
+      "parameters": {
+        "content": "🧱 V2-ORCH — Orchestration (C-V2-01 à C-V2-05b)\nBloc 1/6 du workflow monolithique — 8 nœuds physiques\nV2-010 §3 | ADR-V2-03 Révisé 07/08/2026 : chemin simplifié scripts → contenus → campagnes (2 JOINs)\nOrdre : C-V2-01 (Webhook) → C-V2-02 (IF validation) → C-V2-03 (Lire Contexte V1) → IF Contexte Trouvé → C-V2-04 (Vérif Outils) → C-V2-05 (Créer Dossier) → C-V2-05b 1/2 + 2/2 (Checklist 9 étapes)",
+        "height": 380,
+        "width": 2082,
+        "color": 4
+      },
+      "id": "3b2e9e2d-f1b9-445b-9568-763526da3f64",
+      "name": "Sticky — V2-ORCH",
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        0,
+        0
+      ]
+    },
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "v2-creer-dossier",
+        "options": {}
+      },
+      "id": "226eaa83-db9c-4e54-9e12-544d52305d66",
+      "name": "C-V2-01 · Recevoir Demande V2",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2,
+      "position": [
+        112,
+        192
+      ],
+      "webhookId": "v2-creer-dossier-webhook-id",
+      "notes": "Payload attendu: { script_id: number, outil_image_id: number, outil_animation_id: number }"
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "SELECT\n  s.id AS script_id,\n  s.script AS script_texte,\n  s.contenu_id,\n  co.id AS contenu_id_verif,\n  co.titre AS contenu_titre,\n  co.plateforme AS contenu_plateforme,\n  ca.id AS campagne_id,\n  ca.sujet AS campagne_sujet,\n  ca.statut AS campagne_statut\nFROM scripts s\nJOIN contenus co ON co.id = s.contenu_id\nJOIN campagnes ca ON ca.id = co.campagne_id\nWHERE s.id = {{ $('C-V2-01 · Recevoir Demande V2').item.json.body.script_id }}\n  AND ca.statut = 'TERMINEE';",
+        "options": {}
+      },
+      "id": "f02de6bb-c279-48b2-b642-995b3d417ada",
+      "name": "C-V2-03 · Lire Contexte V1",
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.4,
+      "position": [
+        624,
+        112
+      ],
+      "credentials": {
+        "postgres": {
+          "id": "9CJdZfap0gHnWIUB",
+          "name": "ia-contenu-prod"
+        }
+      },
+      "notes": "ADR-V2-03 Révisé: 2 JOINs (scripts→contenus→campagnes). Vérifié 100% identique au chemin via analyses."
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "SELECT\n  COUNT(*) FILTER (\n    WHERE id = {{ $('C-V2-01 · Recevoir Demande V2').item.json.body.outil_image_id }}\n      AND categorie = 'image'\n  ) AS nb_image_valide,\n  COUNT(*) FILTER (\n    WHERE id = {{ $('C-V2-01 · Recevoir Demande V2').item.json.body.outil_animation_id }}\n      AND categorie = 'animation'\n  ) AS nb_animation_valide,\n  STRING_AGG(nom || ' (' || categorie || ')', ', ') AS outils_trouves\nFROM v2_outils\nWHERE id IN (\n  {{ $('C-V2-01 · Recevoir Demande V2').item.json.body.outil_image_id }},\n  {{ $('C-V2-01 · Recevoir Demande V2').item.json.body.outil_animation_id }}\n)\n  AND actif = true;",
+        "options": {}
+      },
+      "id": "9419ed3f-79cb-4795-bb17-dab5b7c1cae8",
+      "name": "C-V2-04 · Vérifier Outils V2",
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.4,
+      "position": [
+        1120,
+        96
+      ],
+      "credentials": {
+        "postgres": {
+          "id": "9CJdZfap0gHnWIUB",
+          "name": "ia-contenu-prod"
+        }
+      },
+      "notes": "Doit retourner 2 lignes (1 image + 1 animation). Si 0 ou 1 → outils inactifs ou mauvais IDs."
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "INSERT INTO v2_dossiers_production (\n  script_id,\n  campagne_id,\n  outil_image_id,\n  outil_animation_id,\n  execution_id,\n  statut,\n  nb_plans_total,\n  nb_plans_traites\n) VALUES (\n  {{ $('C-V2-01 · Recevoir Demande V2').item.json.body.script_id }},\n  {{ $('C-V2-03 · Lire Contexte V1').item.json.campagne_id }},\n  {{ $('C-V2-01 · Recevoir Demande V2').item.json.body.outil_image_id }},\n  {{ $('C-V2-01 · Recevoir Demande V2').item.json.body.outil_animation_id }},\n  gen_random_uuid()::text,\n  'EN_COURS',\n  0,\n  0\n) RETURNING id, execution_id, script_id, campagne_id, statut;",
+        "options": {}
+      },
+      "id": "4052e53e-433b-4599-81bc-a797d01101f6",
+      "name": "C-V2-05 · Créer Dossier V2",
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.4,
+      "position": [
+        1536,
+        0
+      ],
+      "credentials": {
+        "postgres": {
+          "id": "9CJdZfap0gHnWIUB",
+          "name": "ia-contenu-prod"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "INSERT INTO v2_checklists (dossier_id)\nVALUES ({{ $('C-V2-05 · Créer Dossier V2').item.json.id }})\nRETURNING id, dossier_id;",
+        "options": {}
+      },
+      "id": "d93d5a12-5650-4aca-9181-2b8af73f920f",
+      "name": "C-V2-05b · Créer Checklist (1/2)",
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.4,
+      "position": [
+        1712,
+        0
+      ],
+      "credentials": {
+        "postgres": {
+          "id": "9CJdZfap0gHnWIUB",
+          "name": "ia-contenu-prod"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "WITH insertions AS (\n  INSERT INTO v2_etapes_checklist (checklist_id, libelle, ordre_affichage, est_realisee)\n  VALUES\n    ({{ $('C-V2-05b · Créer Checklist (1/2)').item.json.id }}, 'Scènes générées', 1, false),\n    ({{ $('C-V2-05b · Créer Checklist (1/2)').item.json.id }}, 'Plans découpés', 2, false),\n    ({{ $('C-V2-05b · Créer Checklist (1/2)').item.json.id }}, 'Images générées', 3, false),\n    ({{ $('C-V2-05b · Créer Checklist (1/2)').item.json.id }}, 'Images validées', 4, false),\n    ({{ $('C-V2-05b · Créer Checklist (1/2)').item.json.id }}, 'Animations générées', 5, false),\n    ({{ $('C-V2-05b · Créer Checklist (1/2)').item.json.id }}, 'Animations validées', 6, false),\n    ({{ $('C-V2-05b · Créer Checklist (1/2)').item.json.id }}, 'Voix off générée', 7, false),\n    ({{ $('C-V2-05b · Créer Checklist (1/2)').item.json.id }}, 'Montage assemblé', 8, false),\n    ({{ $('C-V2-05b · Créer Checklist (1/2)').item.json.id }}, 'Publication préparée', 9, false)\n  RETURNING id, checklist_id\n)\nSELECT\n  {{ $('C-V2-05b · Créer Checklist (1/2)').item.json.id }} AS checklist_id,\n  COUNT(*)::integer AS nb_etapes_creees,\n  {{ $('C-V2-05 · Créer Dossier V2').item.json.id }} AS dossier_id\nFROM insertions;",
+        "options": {}
+      },
+      "id": "3fdbc972-f74b-4ca6-b574-df0c6588f5dd",
+      "name": "C-V2-05b · Créer Checklist (2/2)",
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.4,
+      "position": [
+        1856,
+        0
+      ],
+      "credentials": {
+        "postgres": {
+          "id": "9CJdZfap0gHnWIUB",
+          "name": "ia-contenu-prod"
+        }
+      },
+      "notes": "9 lignes obligatoires. Vérif test: SELECT count(*) FROM v2_etapes_checklist WHERE checklist_id = $1"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 3
+          },
+          "conditions": [
+            {
+              "id": "24d66fc4-17c3-4835-a5e4-02d3c3d8e0e3",
+              "leftValue": "={{ $json.body.script_id }}",
+              "rightValue": "",
+              "operator": {
+                "type": "number",
+                "operation": "notEmpty",
+                "singleValue": true
+              }
+            },
+            {
+              "id": "becc3d87-f58a-4719-8661-33904e6996f5",
+              "leftValue": "={{ $json.body.outil_image_id }}",
+              "rightValue": "",
+              "operator": {
+                "type": "number",
+                "operation": "notEmpty",
+                "singleValue": true
+              }
+            },
+            {
+              "id": "879a01c6-0ef5-40cc-943d-d414a38d3a80",
+              "leftValue": "={{ $json.body.outil_animation_id }}",
+              "rightValue": "",
+              "operator": {
+                "type": "number",
+                "operation": "notEmpty",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.3,
+      "position": [
+        400,
+        192
+      ],
+      "id": "d23032ea-b254-4128-adbe-8cf4ab32f4c8",
+      "name": "C-V2-02 · Valider Paramètres V2"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 3
+          },
+          "conditions": [
+            {
+              "id": "de946b9a-78a6-4caf-a89f-dddf57d0e480",
+              "leftValue": "={{ $json.campagne_id }}",
+              "rightValue": "",
+              "operator": {
+                "type": "string",
+                "operation": "notEmpty",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.3,
+      "position": [
+        864,
+        112
+      ],
+      "id": "85fd01ad-bddb-49ca-841d-00365da0c460",
+      "name": "IF · Contexte V1 Trouvé ?"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 3
+          },
+          "conditions": [
+            {
+              "id": "25c2669a-4309-4e21-9c12-09ef50b93c3a",
+              "leftValue": "={{ $json.nb_image_valide }}",
+              "rightValue": "1",
+              "operator": {
+                "type": "string",
+                "operation": "equals",
+                "name": "filter.operator.equals"
+              }
+            },
+            {
+              "id": "79010314-cc1c-48dc-9094-583f1f121dd3",
+              "leftValue": "={{ $json.nb_animation_valide }}",
+              "rightValue": "1",
+              "operator": {
+                "type": "string",
+                "operation": "equals",
+                "name": "filter.operator.equals"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.3,
+      "position": [
+        1312,
+        96
+      ],
+      "id": "f9cc31ae-9b39-4393-8b3f-9a500ea30cf9",
+      "name": "IF · Outils Valides ?"
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "C-V2-01 · Recevoir Demande V2": {
+      "main": [
+        [
+          {
+            "node": "C-V2-02 · Valider Paramètres V2",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "C-V2-03 · Lire Contexte V1": {
+      "main": [
+        [
+          {
+            "node": "IF · Contexte V1 Trouvé ?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "C-V2-04 · Vérifier Outils V2": {
+      "main": [
+        [
+          {
+            "node": "IF · Outils Valides ?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "C-V2-05 · Créer Dossier V2": {
+      "main": [
+        [
+          {
+            "node": "C-V2-05b · Créer Checklist (1/2)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "C-V2-05b · Créer Checklist (1/2)": {
+      "main": [
+        [
+          {
+            "node": "C-V2-05b · Créer Checklist (2/2)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "C-V2-02 · Valider Paramètres V2": {
+      "main": [
+        [
+          {
+            "node": "C-V2-03 · Lire Contexte V1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "IF · Contexte V1 Trouvé ?": {
+      "main": [
+        [
+          {
+            "node": "C-V2-04 · Vérifier Outils V2",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "IF · Outils Valides ?": {
+      "main": [
+        [
+          {
+            "node": "C-V2-05 · Créer Dossier V2",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate",
+    "timeSavedMode": "fixed",
+    "errorWorkflow": "GeGB8DSmC0Bmsj7s",
+    "callerPolicy": "workflowsFromSameOwner",
+    "availableInMCP": false
+  },
+  "versionId": "1e558b7f-6b22-4a7e-a74a-adbf90aba8b4",
+  "meta": {
+    "instanceId": "09a4271ff440e2d4ed1d23d70521c8ceadc5f0cf389b7a9fad7d7fcb78f3bb2c"
+  },
+  "id": "A2AmECQZN9PsK0Ky",
+  "tags": []
+}
