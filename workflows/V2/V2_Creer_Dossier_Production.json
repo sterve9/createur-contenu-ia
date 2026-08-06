@@ -1,21 +1,146 @@
 {
-  "name": "système de veille de contenus viraux",
+  "name": "V2 — Créateur de Dossier de Production",
   "nodes": [
     {
       "parameters": {
+        "content": "🧱 V2-ORCH — Orchestration (C-V2-01 à C-V2-05b)\nBloc 1/6 du workflow monolithique — 8 nœuds physiques\nV2-010 §3 | ADR-V2-03 Révisé 07/08/2026 : chemin simplifié scripts → contenus → campagnes (2 JOINs)\nOrdre : C-V2-01 (Webhook) → C-V2-02 (IF validation) → C-V2-03 (Lire Contexte V1) → IF Contexte Trouvé → C-V2-04 (Vérif Outils) → C-V2-05 (Créer Dossier) → C-V2-05b 1/2 + 2/2 (Checklist 9 étapes)",
+        "height": 380,
+        "width": 2082,
+        "color": 4
+      },
+      "id": "3b2e9e2d-f1b9-445b-9568-763526da3f64",
+      "name": "Sticky — V2-ORCH",
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        -1200,
+        176
+      ]
+    },
+    {
+      "parameters": {
         "httpMethod": "POST",
-        "path": "lancer-campagne",
+        "path": "v2-creer-dossier",
         "options": {}
       },
+      "id": "226eaa83-db9c-4e54-9e12-544d52305d66",
+      "name": "C-V2-01 · Recevoir Demande V2",
       "type": "n8n-nodes-base.webhook",
-      "typeVersion": 2.1,
+      "typeVersion": 2,
       "position": [
-        -9440,
-        -1024
+        -1088,
+        400
       ],
-      "id": "f7a856bc-8755-4bc2-bcf4-cb98b7ef357e",
-      "name": "Recevoir Demande Campagne",
-      "webhookId": "de14c439-8909-4431-ac86-9844c9a7c7ab"
+      "webhookId": "v2-creer-dossier-webhook-id",
+      "notes": "Payload attendu: { script_id: number, outil_image_id: number, outil_animation_id: number }"
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "SELECT\n  s.id AS script_id,\n  s.script AS script_texte,\n  s.contenu_id,\n  co.id AS contenu_id_verif,\n  co.titre AS contenu_titre,\n  co.plateforme AS contenu_plateforme,\n  ca.id AS campagne_id,\n  ca.sujet AS campagne_sujet,\n  ca.statut AS campagne_statut\nFROM scripts s\nJOIN contenus co ON co.id = s.contenu_id\nJOIN campagnes ca ON ca.id = co.campagne_id\nWHERE s.id = {{ $('C-V2-01 · Recevoir Demande V2').item.json.body.script_id }}\n  AND ca.statut = 'TERMINEE';",
+        "options": {}
+      },
+      "id": "f02de6bb-c279-48b2-b642-995b3d417ada",
+      "name": "C-V2-03 · Lire Contexte V1",
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.4,
+      "position": [
+        -576,
+        320
+      ],
+      "credentials": {
+        "postgres": {
+          "id": "9CJdZfap0gHnWIUB",
+          "name": "ia-contenu-prod"
+        }
+      },
+      "notes": "ADR-V2-03 Révisé: 2 JOINs (scripts→contenus→campagnes). Vérifié 100% identique au chemin via analyses."
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "SELECT\n  COUNT(*) FILTER (\n    WHERE id = {{ $('C-V2-01 · Recevoir Demande V2').item.json.body.outil_image_id }}\n      AND categorie = 'image'\n  ) AS nb_image_valide,\n  COUNT(*) FILTER (\n    WHERE id = {{ $('C-V2-01 · Recevoir Demande V2').item.json.body.outil_animation_id }}\n      AND categorie = 'animation'\n  ) AS nb_animation_valide,\n  STRING_AGG(nom || ' (' || categorie || ')', ', ') AS outils_trouves\nFROM v2_outils\nWHERE id IN (\n  {{ $('C-V2-01 · Recevoir Demande V2').item.json.body.outil_image_id }},\n  {{ $('C-V2-01 · Recevoir Demande V2').item.json.body.outil_animation_id }}\n)\n  AND actif = true;",
+        "options": {}
+      },
+      "id": "9419ed3f-79cb-4795-bb17-dab5b7c1cae8",
+      "name": "C-V2-04 · Vérifier Outils V2",
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.4,
+      "position": [
+        -80,
+        304
+      ],
+      "credentials": {
+        "postgres": {
+          "id": "9CJdZfap0gHnWIUB",
+          "name": "ia-contenu-prod"
+        }
+      },
+      "notes": "Doit retourner 2 lignes (1 image + 1 animation). Si 0 ou 1 → outils inactifs ou mauvais IDs."
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "INSERT INTO v2_dossiers_production (\n  script_id,\n  campagne_id,\n  outil_image_id,\n  outil_animation_id,\n  execution_id,\n  statut,\n  nb_plans_total,\n  nb_plans_traites\n) VALUES (\n  {{ $('C-V2-01 · Recevoir Demande V2').item.json.body.script_id }},\n  {{ $('C-V2-03 · Lire Contexte V1').item.json.campagne_id }},\n  {{ $('C-V2-01 · Recevoir Demande V2').item.json.body.outil_image_id }},\n  {{ $('C-V2-01 · Recevoir Demande V2').item.json.body.outil_animation_id }},\n  gen_random_uuid()::text,\n  'EN_COURS',\n  0,\n  0\n) RETURNING id, execution_id, script_id, campagne_id, statut;",
+        "options": {}
+      },
+      "id": "4052e53e-433b-4599-81bc-a797d01101f6",
+      "name": "C-V2-05 · Créer Dossier V2",
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.4,
+      "position": [
+        336,
+        208
+      ],
+      "credentials": {
+        "postgres": {
+          "id": "9CJdZfap0gHnWIUB",
+          "name": "ia-contenu-prod"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "INSERT INTO v2_checklists (dossier_id)\nVALUES ({{ $('C-V2-05 · Créer Dossier V2').item.json.id }})\nRETURNING id, dossier_id;",
+        "options": {}
+      },
+      "id": "d93d5a12-5650-4aca-9181-2b8af73f920f",
+      "name": "C-V2-05b · Créer Checklist (1/2)",
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.4,
+      "position": [
+        512,
+        208
+      ],
+      "credentials": {
+        "postgres": {
+          "id": "9CJdZfap0gHnWIUB",
+          "name": "ia-contenu-prod"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "WITH insertions AS (\n  INSERT INTO v2_etapes_checklist (checklist_id, libelle, ordre_affichage, est_realisee)\n  VALUES\n    ({{ $('C-V2-05b · Créer Checklist (1/2)').item.json.id }}, 'Scènes générées', 1, false),\n    ({{ $('C-V2-05b · Créer Checklist (1/2)').item.json.id }}, 'Plans découpés', 2, false),\n    ({{ $('C-V2-05b · Créer Checklist (1/2)').item.json.id }}, 'Images générées', 3, false),\n    ({{ $('C-V2-05b · Créer Checklist (1/2)').item.json.id }}, 'Images validées', 4, false),\n    ({{ $('C-V2-05b · Créer Checklist (1/2)').item.json.id }}, 'Animations générées', 5, false),\n    ({{ $('C-V2-05b · Créer Checklist (1/2)').item.json.id }}, 'Animations validées', 6, false),\n    ({{ $('C-V2-05b · Créer Checklist (1/2)').item.json.id }}, 'Voix off générée', 7, false),\n    ({{ $('C-V2-05b · Créer Checklist (1/2)').item.json.id }}, 'Montage assemblé', 8, false),\n    ({{ $('C-V2-05b · Créer Checklist (1/2)').item.json.id }}, 'Publication préparée', 9, false)\n  RETURNING id, checklist_id\n)\nSELECT\n  {{ $('C-V2-05b · Créer Checklist (1/2)').item.json.id }} AS checklist_id,\n  COUNT(*)::integer AS nb_etapes_creees,\n  {{ $('C-V2-05 · Créer Dossier V2').item.json.id }} AS dossier_id\nFROM insertions;",
+        "options": {}
+      },
+      "id": "3fdbc972-f74b-4ca6-b574-df0c6588f5dd",
+      "name": "C-V2-05b · Créer Checklist (2/2)",
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.4,
+      "position": [
+        656,
+        208
+      ],
+      "credentials": {
+        "postgres": {
+          "id": "9CJdZfap0gHnWIUB",
+          "name": "ia-contenu-prod"
+        }
+      },
+      "notes": "9 lignes obligatoires. Vérif test: SELECT count(*) FROM v2_etapes_checklist WHERE checklist_id = $1"
     },
     {
       "parameters": {
@@ -28,42 +153,33 @@
           },
           "conditions": [
             {
-              "id": "cf0a4663-834b-40ca-98e4-c67dd99c9fb8",
-              "leftValue": "={{ $json.body.sujet }}",
+              "id": "24d66fc4-17c3-4835-a5e4-02d3c3d8e0e3",
+              "leftValue": "={{ $json.body.script_id }}",
               "rightValue": "",
-              "operator": {
-                "type": "string",
-                "operation": "notEmpty",
-                "singleValue": true
-              }
-            },
-            {
-              "id": "e20e2faa-2222-4870-be9c-50aee28f5ab9",
-              "leftValue": "={{ $json.body.plateforme }}",
-              "rightValue": "",
-              "operator": {
-                "type": "string",
-                "operation": "notEmpty",
-                "singleValue": true
-              }
-            },
-            {
-              "id": "ae2fa73c-72c0-4f78-9834-cba7eb4c2ad1",
-              "leftValue": "={{ $json.body.langue }}",
-              "rightValue": "",
-              "operator": {
-                "type": "string",
-                "operation": "notEmpty",
-                "singleValue": true
-              }
-            },
-            {
-              "id": "9e36f612-998d-4ed2-942c-b462d867a5a5",
-              "leftValue": "={{ $json.body.nb_resultats }}",
-              "rightValue": 0,
               "operator": {
                 "type": "number",
-                "operation": "gt"
+                "operation": "notEmpty",
+                "singleValue": true
+              }
+            },
+            {
+              "id": "becc3d87-f58a-4719-8661-33904e6996f5",
+              "leftValue": "={{ $json.body.outil_image_id }}",
+              "rightValue": "",
+              "operator": {
+                "type": "number",
+                "operation": "notEmpty",
+                "singleValue": true
+              }
+            },
+            {
+              "id": "879a01c6-0ef5-40cc-943d-d414a38d3a80",
+              "leftValue": "={{ $json.body.outil_animation_id }}",
+              "rightValue": "",
+              "operator": {
+                "type": "number",
+                "operation": "notEmpty",
+                "singleValue": true
               }
             }
           ],
@@ -74,535 +190,105 @@
       "type": "n8n-nodes-base.if",
       "typeVersion": 2.3,
       "position": [
-        -9200,
-        -1024
+        -800,
+        400
       ],
-      "id": "dc6d8e95-719b-4621-b39d-228d51d34803",
-      "name": "Valider Paramètres"
+      "id": "d23032ea-b254-4128-adbe-8cf4ab32f4c8",
+      "name": "C-V2-02 · Valider Paramètres V2"
     },
     {
       "parameters": {
-        "schema": {
-          "__rl": true,
-          "value": "public",
-          "mode": "list",
-          "cachedResultName": "public"
-        },
-        "table": {
-          "__rl": true,
-          "value": "campagnes",
-          "mode": "list",
-          "cachedResultName": "campagnes"
-        },
-        "columns": {
-          "mappingMode": "defineBelow",
-          "value": {
-            "nb_resultats": "={{ $json.body.nb_resultats }}",
-            "sujet": "={{ $json.body.sujet }}",
-            "plateforme": "={{ $json.body.plateforme }}",
-            "langue": "={{ $json.body.langue }}",
-            "statut": "EN_COURS",
-            "execution_id": "={{ $execution.id }}"
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 3
           },
-          "matchingColumns": [
-            "id"
-          ],
-          "schema": [
+          "conditions": [
             {
-              "id": "id",
-              "displayName": "id",
-              "required": false,
-              "defaultMatch": true,
-              "display": true,
-              "type": "number",
-              "canBeUsedToMatch": true,
-              "removed": true
-            },
-            {
-              "id": "created_at",
-              "displayName": "created_at",
-              "required": false,
-              "defaultMatch": false,
-              "display": true,
-              "type": "dateTime",
-              "canBeUsedToMatch": true
-            },
-            {
-              "id": "sujet",
-              "displayName": "sujet",
-              "required": true,
-              "defaultMatch": false,
-              "display": true,
-              "type": "string",
-              "canBeUsedToMatch": true
-            },
-            {
-              "id": "plateforme",
-              "displayName": "plateforme",
-              "required": true,
-              "defaultMatch": false,
-              "display": true,
-              "type": "string",
-              "canBeUsedToMatch": true
-            },
-            {
-              "id": "langue",
-              "displayName": "langue",
-              "required": true,
-              "defaultMatch": false,
-              "display": true,
-              "type": "string",
-              "canBeUsedToMatch": true
-            },
-            {
-              "id": "nb_resultats",
-              "displayName": "nb_resultats",
-              "required": true,
-              "defaultMatch": false,
-              "display": true,
-              "type": "number",
-              "canBeUsedToMatch": true
-            },
-            {
-              "id": "statut",
-              "displayName": "statut",
-              "required": false,
-              "defaultMatch": false,
-              "display": true,
-              "type": "string",
-              "canBeUsedToMatch": true
-            },
-            {
-              "id": "date_fin",
-              "displayName": "date_fin",
-              "required": false,
-              "defaultMatch": false,
-              "display": true,
-              "type": "dateTime",
-              "canBeUsedToMatch": true
-            },
-            {
-              "id": "execution_id",
-              "displayName": "execution_id",
-              "required": false,
-              "defaultMatch": false,
-              "display": true,
-              "type": "string",
-              "canBeUsedToMatch": true,
-              "removed": false
+              "id": "de946b9a-78a6-4caf-a89f-dddf57d0e480",
+              "leftValue": "={{ $json.campagne_id }}",
+              "rightValue": "",
+              "operator": {
+                "type": "string",
+                "operation": "notEmpty",
+                "singleValue": true
+              }
             }
           ],
-          "attemptToConvertTypes": false,
-          "convertFieldsToString": false
+          "combinator": "and"
         },
         "options": {}
       },
-      "type": "n8n-nodes-base.postgres",
-      "typeVersion": 2.6,
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.3,
       "position": [
-        -8848,
-        -1200
+        -336,
+        320
       ],
-      "id": "fffa64cd-518d-457f-aada-38dcb58eaf86",
-      "name": "Créer Campagne",
-      "credentials": {
-        "postgres": {
-          "id": "9CJdZfap0gHnWIUB",
-          "name": "ia-contenu-prod"
-        }
-      }
+      "id": "85fd01ad-bddb-49ca-841d-00365da0c460",
+      "name": "IF · Contexte V1 Trouvé ?"
     },
     {
       "parameters": {
-        "url": "https://www.googleapis.com/youtube/v3/search",
-        "authentication": "genericCredentialType",
-        "genericAuthType": "httpHeaderAuth",
-        "sendQuery": true,
-        "queryParameters": {
-          "parameters": [
-            {
-              "name": "part",
-              "value": "snippet"
-            },
-            {
-              "name": "type",
-              "value": "video"
-            },
-            {
-              "name": "q",
-              "value": "={{ $json.sujet }}"
-            },
-            {
-              "name": "maxResults",
-              "value": "={{ $json.nb_resultats }}"
-            }
-          ]
-        },
-        "options": {}
-      },
-      "type": "n8n-nodes-base.httpRequest",
-      "typeVersion": 4.4,
-      "position": [
-        -8592,
-        -1200
-      ],
-      "id": "834d0599-35a9-4cdc-b899-8d2d4e7d5cff",
-      "name": "Collecte des contenus",
-      "credentials": {
-        "httpHeaderAuth": {
-          "id": "ma35vVKoeeQQUhO6",
-          "name": "youtube-api-key"
-        }
-      }
-    },
-    {
-      "parameters": {
-        "jsCode": "// Récupère l'ID de la campagne depuis le nœud amont\nconst campagneId = $('Créer Campagne').first().json.id;\n\n// Récupère la liste des vidéos depuis l'API YouTube\nconst inputData = $input.first().json;\nconst videos = inputData.items || [];\n\n// Transformation propre, lisible et explicite avec .map()\nreturn videos\n  .filter(video => video.id && video.snippet)\n  .map(video => {\n    // On isole l'extraction de l'identifiant pour raconter l'intention métier\n    const contenuSourceId = \n      video.id.videoId ?? \n      video.id.channelId ?? \n      video.id.playlistId ?? \n      null;\n\n    return {\n      json: {\n        campagne_id: campagneId,\n        contenu_source_id: contenuSourceId,\n        titre: video.snippet.title,\n        auteur: video.snippet.channelTitle,\n        description: video.snippet.description,\n        date_publication: video.snippet.publishedAt,\n        plateforme: \"YouTube\"\n      }\n    };\n  });"
-      },
-      "type": "n8n-nodes-base.code",
-      "typeVersion": 2,
-      "position": [
-        -8352,
-        -1200
-      ],
-      "id": "bc23686b-b857-4875-a02b-103f3dd8b706",
-      "name": "Normalisation"
-    },
-    {
-      "parameters": {
-        "operation": "upsert",
-        "schema": {
-          "__rl": true,
-          "value": "public",
-          "mode": "list",
-          "cachedResultName": "public"
-        },
-        "table": {
-          "__rl": true,
-          "value": "contenus",
-          "mode": "list",
-          "cachedResultName": "contenus"
-        },
-        "columns": {
-          "mappingMode": "defineBelow",
-          "value": {
-            "campagne_id": "={{ $json.campagne_id }}",
-            "contenu_source_id": "={{ $json.contenu_source_id }}",
-            "titre": "={{ $json.titre }}",
-            "auteur": "={{ $json.auteur }}",
-            "description": "={{ $json.description }}",
-            "date_publication": "={{ $json.date_publication }}",
-            "plateforme": "={{ $json.plateforme }}"
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 3
           },
-          "matchingColumns": [
-            "contenu_source_id"
-          ],
-          "schema": [
+          "conditions": [
             {
-              "id": "id",
-              "displayName": "id",
-              "required": false,
-              "defaultMatch": true,
-              "display": true,
-              "type": "number",
-              "canBeUsedToMatch": true,
-              "removed": true
+              "id": "25c2669a-4309-4e21-9c12-09ef50b93c3a",
+              "leftValue": "={{ $json.nb_image_valide }}",
+              "rightValue": "1",
+              "operator": {
+                "type": "string",
+                "operation": "equals",
+                "name": "filter.operator.equals"
+              }
             },
             {
-              "id": "campagne_id",
-              "displayName": "campagne_id",
-              "required": false,
-              "defaultMatch": false,
-              "display": true,
-              "type": "number",
-              "canBeUsedToMatch": false
-            },
-            {
-              "id": "contenu_source_id",
-              "displayName": "contenu_source_id",
-              "required": true,
-              "defaultMatch": false,
-              "display": true,
-              "type": "string",
-              "canBeUsedToMatch": true,
-              "removed": false
-            },
-            {
-              "id": "titre",
-              "displayName": "titre",
-              "required": true,
-              "defaultMatch": false,
-              "display": true,
-              "type": "string",
-              "canBeUsedToMatch": false
-            },
-            {
-              "id": "auteur",
-              "displayName": "auteur",
-              "required": false,
-              "defaultMatch": false,
-              "display": true,
-              "type": "string",
-              "canBeUsedToMatch": false
-            },
-            {
-              "id": "description",
-              "displayName": "description",
-              "required": false,
-              "defaultMatch": false,
-              "display": true,
-              "type": "string",
-              "canBeUsedToMatch": false
-            },
-            {
-              "id": "date_publication",
-              "displayName": "date_publication",
-              "required": false,
-              "defaultMatch": false,
-              "display": true,
-              "type": "dateTime",
-              "canBeUsedToMatch": false
-            },
-            {
-              "id": "plateforme",
-              "displayName": "plateforme",
-              "required": true,
-              "defaultMatch": false,
-              "display": true,
-              "type": "string",
-              "canBeUsedToMatch": false
-            },
-            {
-              "id": "created_at",
-              "displayName": "created_at",
-              "required": false,
-              "defaultMatch": false,
-              "display": true,
-              "type": "dateTime",
-              "canBeUsedToMatch": false
+              "id": "79010314-cc1c-48dc-9094-583f1f121dd3",
+              "leftValue": "={{ $json.nb_animation_valide }}",
+              "rightValue": "1",
+              "operator": {
+                "type": "string",
+                "operation": "equals",
+                "name": "filter.operator.equals"
+              }
             }
           ],
-          "attemptToConvertTypes": false,
-          "convertFieldsToString": false
+          "combinator": "and"
         },
         "options": {}
       },
-      "type": "n8n-nodes-base.postgres",
-      "typeVersion": 2.6,
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.3,
       "position": [
-        -7232,
-        -1200
+        112,
+        304
       ],
-      "id": "7ec9fff2-1301-40b6-9834-5f2aeed14b03",
-      "name": "Persistance des contenus",
-      "credentials": {
-        "postgres": {
-          "id": "9CJdZfap0gHnWIUB",
-          "name": "ia-contenu-prod"
-        }
-      }
+      "id": "f9cc31ae-9b39-4393-8b3f-9a500ea30cf9",
+      "name": "IF · Outils Valides ?"
     },
     {
       "parameters": {
-        "modelId": {
-          "__rl": true,
-          "value": "claude-opus-5",
-          "mode": "list",
-          "cachedResultName": "claude-opus-5"
-        },
-        "messages": {
-          "values": [
-            {
-              "content": "=Analyse ce contenu de manière experte et renvoie UNIQUEMENT un objet JSON valide (sans markdown autour si possible, ou un bloc JSON pur) respectant exactement cette structure :\n{\n  \"contenu_id\": {{ $json.id }},\n  \"resume\": \"Un court résumé de l'idée principale\",\n  \"theme\": \"Le thème principal\",\n  \"sentiment\": \"Positif, Neutre ou Négatif\",\n  \"score_qualite\": 85,\n  \"mots_cles\": [\"mot1\", \"mot2\"],\n  \"langue\": \"fr\"\n}\n\nVoici les données à analyser :\n- Titre : {{ $json.titre }}\n- Description : {{ $json.description }}\n- Plateforme : {{ $json.plateforme }}"
-            }
-          ]
-        },
-        "options": {
-          "maxTokens": 1000
-        }
+        "content": "🎬 V2-SCENE — Génération des Scènes (C-V2-06 à C-V2-08)\nBloc 2/6 du workflow monolithique — 3 nœuds physiques\nV2-010 §4 | ADR-V2-05 : N items en sortie (1 par scène) → alimente V2-PLAN en parallèle\nOrdre : C-V2-06 (LLM Anthropic) → C-V2-07 (Normaliser JS) → C-V2-08 (Persister Postgres UPSERT)",
+        "height": 384,
+        "width": 768,
+        "color": 5
       },
-      "type": "@n8n/n8n-nodes-langchain.anthropic",
+      "type": "n8n-nodes-base.stickyNote",
       "typeVersion": 1,
       "position": [
-        -7024,
-        -1200
+        880,
+        176
       ],
-      "id": "d91fae53-2aed-4325-9dc5-af92ce57dbbe",
-      "name": "Analyse IA",
-      "credentials": {
-        "anthropicApi": {
-          "id": "w7OEC4dThiZIPIES",
-          "name": "Anthropic account 2"
-        }
-      }
-    },
-    {
-      "parameters": {
-        "jsCode": "// Récupération des items entrants de l'IA\nconst cleanedItems = [];\n\nfor (const item of $input.all()) {\n  // On vérifie si la structure \"content\" existe\n  if (item.json && item.json.content && Array.isArray(item.json.content)) {\n    // On cherche l'élément de type \"text\" (et on ignore les \"thinking\")\n    const textBlock = item.json.content.find(c => c.type === 'text');\n    \n    if (textBlock && textBlock.text) {\n      let rawText = textBlock.text.trim();\n      \n      // Nettoyage des balises markdown ```json ... ``` si présentes\n      if (rawText.startsWith('```')) {\n        // Supprime la première ligne (ex: ```json)\n        rawText = rawText.replace(/^```[a-z]*\\n?/i, '');\n        // Supprime les backticks de fin\n        rawText = rawText.replace(/```\\s*$/, '');\n        rawText = rawText.trim();\n      }\n      \n      try {\n        // Parse la chaîne de caractères en objet JSON propre\n        const parsedJson = JSON.parse(rawText);\n        cleanedItems.push({ json: parsedJson });\n      } catch (e) {\n        // En cas d'échec du parse, on conserve une trace de l'erreur pour le debug\n        cleanedItems.push({ \n          json: { \n            error: \"Failed to parse JSON\", \n            raw: rawText \n          } \n        });\n      }\n    }\n  }\n}\n\nreturn cleanedItems;"
-      },
-      "type": "n8n-nodes-base.code",
-      "typeVersion": 2,
-      "position": [
-        -6704,
-        -1200
-      ],
-      "id": "610655db-506d-4f15-a06f-dc17c7047754",
-      "name": "Normalisation Analyse IA"
-    },
-    {
-      "parameters": {
-        "operation": "upsert",
-        "schema": {
-          "__rl": true,
-          "value": "public",
-          "mode": "list",
-          "cachedResultName": "public"
-        },
-        "table": {
-          "__rl": true,
-          "value": "analyses",
-          "mode": "list",
-          "cachedResultName": "analyses"
-        },
-        "columns": {
-          "mappingMode": "defineBelow",
-          "value": {
-            "score_qualite": "={{ $json.score_qualite }}",
-            "contenu_id": "={{ $json.contenu_id }}",
-            "resume": "={{ $json.resume }}",
-            "theme": "={{ $json.theme }}",
-            "sentiment": "={{ $json.sentiment }}",
-            "mots_cles": "={{ $json.mots_cles }}",
-            "langue": "={{ $json.langue }}"
-          },
-          "matchingColumns": [
-            "contenu_id"
-          ],
-          "schema": [
-            {
-              "id": "id",
-              "displayName": "id",
-              "required": false,
-              "defaultMatch": true,
-              "display": true,
-              "type": "number",
-              "canBeUsedToMatch": true,
-              "removed": true
-            },
-            {
-              "id": "contenu_id",
-              "displayName": "contenu_id",
-              "required": false,
-              "defaultMatch": false,
-              "display": true,
-              "type": "number",
-              "canBeUsedToMatch": true,
-              "removed": false
-            },
-            {
-              "id": "resume",
-              "displayName": "resume",
-              "required": true,
-              "defaultMatch": false,
-              "display": true,
-              "type": "string",
-              "canBeUsedToMatch": false
-            },
-            {
-              "id": "theme",
-              "displayName": "theme",
-              "required": true,
-              "defaultMatch": false,
-              "display": true,
-              "type": "string",
-              "canBeUsedToMatch": false
-            },
-            {
-              "id": "sentiment",
-              "displayName": "sentiment",
-              "required": true,
-              "defaultMatch": false,
-              "display": true,
-              "type": "string",
-              "canBeUsedToMatch": false
-            },
-            {
-              "id": "score_qualite",
-              "displayName": "score_qualite",
-              "required": false,
-              "defaultMatch": false,
-              "display": true,
-              "type": "number",
-              "canBeUsedToMatch": false
-            },
-            {
-              "id": "mots_cles",
-              "displayName": "mots_cles",
-              "required": false,
-              "defaultMatch": false,
-              "display": true,
-              "type": "array",
-              "canBeUsedToMatch": false
-            },
-            {
-              "id": "langue",
-              "displayName": "langue",
-              "required": true,
-              "defaultMatch": false,
-              "display": true,
-              "type": "string",
-              "canBeUsedToMatch": false
-            },
-            {
-              "id": "created_at",
-              "displayName": "created_at",
-              "required": false,
-              "defaultMatch": false,
-              "display": true,
-              "type": "dateTime",
-              "canBeUsedToMatch": false
-            }
-          ],
-          "attemptToConvertTypes": false,
-          "convertFieldsToString": false
-        },
-        "options": {}
-      },
-      "type": "n8n-nodes-base.postgres",
-      "typeVersion": 2.6,
-      "position": [
-        -6528,
-        -1200
-      ],
-      "id": "08ca53b1-4b53-477b-94de-eb221cb10ebb",
-      "name": "Persistance Analyse",
-      "credentials": {
-        "postgres": {
-          "id": "9CJdZfap0gHnWIUB",
-          "name": "ia-contenu-prod"
-        }
-      }
-    },
-    {
-      "parameters": {
-        "operation": "executeQuery",
-        "query": "SELECT \n    a.id AS analyse_id,\n    c.id AS contenu_id,\n    c.campagne_id,\n    c.titre,\n    c.auteur,\n    c.description,\n    c.date_publication,\n    c.plateforme,\n    a.resume,\n    a.theme,\n    a.sentiment,\n    a.score_qualite,\n    a.mots_cles,\n    a.langue\nFROM analyses a\nJOIN contenus c ON c.id = a.contenu_id\nWHERE a.id = {{ $('Persistance Analyse').item.json.id }}\nLIMIT 1;",
-        "options": {}
-      },
-      "type": "n8n-nodes-base.postgres",
-      "typeVersion": 2.6,
-      "position": [
-        -6288,
-        -1200
-      ],
-      "id": "33f6bacb-6c5d-4dc7-9f94-9e31ff2ac67a",
-      "name": "Lecture Analyse et Contenu",
-      "credentials": {
-        "postgres": {
-          "id": "9CJdZfap0gHnWIUB",
-          "name": "ia-contenu-prod"
-        }
-      }
+      "id": "21c6a7d0-bb87-4470-ada1-5e4aa5e13f1f",
+      "name": "Sticky Note"
     },
     {
       "parameters": {
@@ -615,20 +301,22 @@
         "messages": {
           "values": [
             {
-              "content": "=Tu es un expert en création de scripts vidéo viraux pour TikTok, YouTube Shorts et Reels.\n\nVoici le contenu analysé :\n\n- Titre : {{ $json.titre }}\n- Auteur : {{ $json.auteur }}\n- Plateforme : {{ $json.plateforme }}\n- Résumé : {{ $json.resume }}\n- Thème : {{ $json.theme }}\n- Sentiment : {{ $json.sentiment }}\n- Score qualité : {{ $json.score_qualite }}\n- Mots-clés : {{ $json.mots_cles.join(', ') }}\n\nRédige un script vidéo de moins de 60 secondes avec :\n1. Un hook très fort dès la première phrase.\n2. Une explication simple et dynamique.\n3. Un appel à l’action final.\n\nRetourne uniquement un JSON valide au format :\n\n{\n  \"script\": \"...\"\n}"
+              "content": "=Tu es un expert en narration visuelle et en découpage de scripts pour vidéos courtes (TikTok, YouTube Shorts, Reels).\n\nTa mission est de découper le script suivant en scènes narratives cohérentes.\n\nContexte :\n- Sujet général : {{ $('C-V2-03 · Lire Contexte V1').item.json.campagne_sujet }}\n- Titre du contenu source : {{ $('C-V2-03 · Lire Contexte V1').item.json.contenu_titre }}\n\nScript :\n{{ $('C-V2-03 · Lire Contexte V1').item.json.script_texte }}\n\nContraintes :\n- crée entre 2 et 5 scènes ;\n- chaque scène doit correspondre à une unité narrative distincte ;\n- la numérotation doit commencer à 1 et être strictement séquentielle ;\n- le texte narratif doit rester fidèle au script fourni ;\n- chaque scène doit avoir une ambiance visuelle claire ;\n- chaque scène doit avoir une durée estimée entière et strictement positive ;\n- le résultat doit préparer un futur découpage en plans visuels.\n\nRetourne UNIQUEMENT un objet JSON valide, sans aucun texte autour, sans markdown, sans balises ```.\n\nFormat obligatoire :\n\n{\n  \"scenes\": [\n    {\n      \"numero_scene\": 1,\n      \"texte_narratif\": \"Texte dit pendant la scène\",\n      \"ambiance_visuelle\": \"Ambiance visuelle dominante\",\n      \"duree_estimee\": 10\n    }\n  ]\n}"
             }
           ]
         },
-        "options": {}
+        "options": {
+          "maxTokens": 2000
+        }
       },
       "type": "@n8n/n8n-nodes-langchain.anthropic",
       "typeVersion": 1,
       "position": [
-        -6096,
-        -1200
+        912,
+        288
       ],
-      "id": "fa65a5f1-bc6f-4270-873a-7213dabaeb5e",
-      "name": "Génération Script IA",
+      "id": "af329c2a-ea1b-427b-bba7-4319a305794c",
+      "name": "C-V2-06 · Générer Scènes IA",
       "credentials": {
         "anthropicApi": {
           "id": "w7OEC4dThiZIPIES",
@@ -638,104 +326,31 @@
     },
     {
       "parameters": {
-        "jsCode": "const results = [];\n\nfor (let i = 0; i < $input.all().length; i++) {\n  const currentItem = $input.all()[i].json;\n\n  // Récupération des infos liées via l'item correspondant en amont\n  const lecture = $('Lecture Analyse et Contenu').all()[i].json;\n\n  const campagneId = lecture.campagne_id;\n  const contenuId = lecture.contenu_id;\n  const analyseId = lecture.analyse_id;\n\n  // Recherche du bloc texte renvoyé par le LLM\n  let raw = '';\n\n  if (Array.isArray(currentItem.content)) {\n    const textBlock = currentItem.content.find(item => item.type === 'text');\n    if (textBlock) {\n      raw = textBlock.text;\n    }\n  } else if (currentItem.script) {\n    raw = currentItem.script;\n  }\n\n  // Parsing sécurisé\n  let parsed;\n  try {\n    parsed = JSON.parse(raw);\n  } catch (e) {\n    parsed = { script: raw };\n  }\n\n  results.push({\n    json: {\n      campagne_id: campagneId,\n      contenu_id: contenuId,\n      analyse_id: analyseId,\n      script: parsed.script || ''\n    }\n  });\n}\n\nreturn results;"
+        "jsCode": "// C-V2-07 · Normaliser Scènes\n// V2-010 §4 — Parsing + validation + 1 item par scène (ADR-V2-05 : N items voulu pour V2-PLAN)\n// Référence dossier_id : C-V2-05 expose 'id' (pas 'dossier_id')\n\nconst dossier_id = $('C-V2-05 · Créer Dossier V2').first().json.id;\n\nif (!dossier_id) {\n  throw new Error('dossier_id introuvable — vérifier la sortie de C-V2-05 · Créer Dossier V2');\n}\n\nconst results = [];\n\nfor (const item of $input.all()) {\n  // Extraction du bloc texte depuis la réponse Anthropic\n  // NB : Claude Sonnet 4.5 peut retourner plusieurs blocs (thinking + text)\n  //      On extrait uniquement le bloc de type \"text\"\n  let raw = '';\n  if (Array.isArray(item.json.content)) {\n    const textBlock = item.json.content.find(b => b.type === 'text');\n    if (textBlock && textBlock.text) {\n      raw = textBlock.text.trim();\n    }\n  }\n\n  if (!raw) {\n    throw new Error('Aucun bloc \"text\" trouvé dans la réponse Anthropic');\n  }\n\n  // Nettoyage défensif des balises markdown éventuelles (```json ... ```)\n  if (raw.startsWith('```')) {\n    raw = raw.replace(/^```[a-z]*\\n?/i, '').replace(/```\\s*$/, '').trim();\n  }\n\n  // Parsing JSON\n  let parsed;\n  try {\n    parsed = JSON.parse(raw);\n  } catch (e) {\n    throw new Error('Échec du parsing JSON scènes : ' + raw.substring(0, 200));\n  }\n\n  // Validation structure globale\n  if (!parsed.scenes || !Array.isArray(parsed.scenes)) {\n    throw new Error('Structure JSON invalide : tableau scenes absent');\n  }\n\n  if (parsed.scenes.length === 0) {\n    throw new Error('Tableau scenes vide — aucune scène générée');\n  }\n\n  // Validation ligne à ligne + émission d'1 item par scène\n  for (const scene of parsed.scenes) {\n    // Champs obligatoires présents\n    if (\n      scene.numero_scene === undefined ||\n      scene.numero_scene === null ||\n      !scene.texte_narratif ||\n      String(scene.texte_narratif).trim() === '' ||\n      !scene.ambiance_visuelle ||\n      String(scene.ambiance_visuelle).trim() === '' ||\n      scene.duree_estimee === undefined ||\n      scene.duree_estimee === null\n    ) {\n      throw new Error(\n        'Scène incomplète — champs obligatoires manquants (numero_scene, texte_narratif, ambiance_visuelle, duree_estimee) : ' +\n        JSON.stringify(scene)\n      );\n    }\n\n    // Validation des types\n    if (typeof scene.numero_scene !== 'number' || !Number.isInteger(scene.numero_scene)) {\n      throw new Error('numero_scene doit être un entier : ' + JSON.stringify(scene.numero_scene));\n    }\n\n    if (typeof scene.duree_estimee !== 'number' || scene.duree_estimee <= 0) {\n      throw new Error('duree_estimee doit être un entier strictement positif : ' + JSON.stringify(scene.duree_estimee));\n    }\n\n    results.push({\n      json: {\n        dossier_id        : dossier_id,\n        numero_scene      : scene.numero_scene,\n        texte_narratif    : String(scene.texte_narratif).trim(),\n        ambiance_visuelle : String(scene.ambiance_visuelle).trim(),\n        duree_estimee     : Math.round(scene.duree_estimee)\n      }\n    });\n  }\n}\n\nreturn results;"
       },
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
       "position": [
-        -5760,
-        -1200
+        1264,
+        288
       ],
-      "id": "e7a0101e-70c6-41b6-a3ab-127eb967bc1c",
-      "name": "Normalisation Script IA"
+      "id": "9ff0b96c-b005-4dc0-8569-aa506e1db9c5",
+      "name": "C-V2-07 · Normaliser Scènes"
     },
     {
       "parameters": {
-        "operation": "upsert",
-        "schema": {
-          "__rl": true,
-          "value": "public",
-          "mode": "list",
-          "cachedResultName": "public"
-        },
-        "table": {
-          "__rl": true,
-          "value": "scripts",
-          "mode": "list",
-          "cachedResultName": "scripts"
-        },
-        "columns": {
-          "mappingMode": "defineBelow",
-          "value": {
-            "analyse_id": "={{ $json.analyse_id }}",
-            "contenu_id": "={{ $json.contenu_id }}",
-            "script": "={{ $json.script }}"
-          },
-          "matchingColumns": [
-            "analyse_id"
-          ],
-          "schema": [
-            {
-              "id": "id",
-              "displayName": "id",
-              "required": false,
-              "defaultMatch": true,
-              "display": true,
-              "type": "number",
-              "canBeUsedToMatch": true,
-              "removed": true
-            },
-            {
-              "id": "analyse_id",
-              "displayName": "analyse_id",
-              "required": true,
-              "defaultMatch": false,
-              "display": true,
-              "type": "number",
-              "canBeUsedToMatch": true,
-              "removed": false
-            },
-            {
-              "id": "script",
-              "displayName": "script",
-              "required": true,
-              "defaultMatch": false,
-              "display": true,
-              "type": "string",
-              "canBeUsedToMatch": false
-            },
-            {
-              "id": "created_at",
-              "displayName": "created_at",
-              "required": false,
-              "defaultMatch": false,
-              "display": true,
-              "type": "dateTime",
-              "canBeUsedToMatch": false
-            },
-            {
-              "id": "contenu_id",
-              "displayName": "contenu_id",
-              "required": false,
-              "defaultMatch": false,
-              "display": true,
-              "type": "number",
-              "canBeUsedToMatch": false
-            }
-          ],
-          "attemptToConvertTypes": false,
-          "convertFieldsToString": false
-        },
+        "operation": "executeQuery",
+        "query": "INSERT INTO v2_scenes (\n  dossier_id,\n  numero_scene,\n  texte_narratif,\n  ambiance_visuelle,\n  duree_estimee\n)\nVALUES (\n  {{ $json.dossier_id }},\n  {{ $json.numero_scene }},\n  '{{ $json.texte_narratif.replace(/'/g, \"''\") }}',\n  '{{ $json.ambiance_visuelle.replace(/'/g, \"''\") }}',\n  {{ $json.duree_estimee }}\n)\nON CONFLICT (dossier_id, numero_scene) DO UPDATE\n  SET texte_narratif    = EXCLUDED.texte_narratif,\n      ambiance_visuelle = EXCLUDED.ambiance_visuelle,\n      duree_estimee     = EXCLUDED.duree_estimee\nRETURNING \n  id AS scene_id, \n  dossier_id, \n  numero_scene, \n  texte_narratif, \n  ambiance_visuelle, \n  duree_estimee;",
         "options": {}
       },
       "type": "n8n-nodes-base.postgres",
       "typeVersion": 2.6,
       "position": [
-        -5584,
-        -1200
+        1472,
+        288
       ],
-      "id": "ef928853-69d2-4de1-bd5a-7732065e453b",
-      "name": "Persistance Script",
+      "id": "c419e063-5059-41d6-9ac7-494df4b12df2",
+      "name": "C-V2-08 · Persister Scènes",
       "credentials": {
         "postgres": {
           "id": "9CJdZfap0gHnWIUB",
@@ -745,396 +360,296 @@
     },
     {
       "parameters": {
-        "content": "# 📥 Collecte & Normalisation (C03-C05d)\n\n**Création campagne, collecte YouTube et fixation du total**\n\n- C03 · Créer Campagne (statut = EN_COURS)\n- C04 · Collecte YouTube API\n- C05 · Normalisation des vidéos\n- C05a · Agrégation des items\n- C05b · Calcul nb_total\n- C05c · UPDATE nb_contenus_total *(fixé UNE seule fois)*\n- C05d · Redistribution en items unitaires\n\n🔑 `nb_contenus_total` ne doit JAMAIS être modifié après C05c.",
-        "height": 1184,
-        "width": 1520,
-        "color": "#00FF00"
+        "content": "📐 V2-PLAN — Découpage en Plans (C-V2-09 à C-V2-11b)\nBloc 3/6 du workflow monolithique — 4 nœuds physiques\nV2-010 §5 | ADR-V2-05 : C-V2-11b = BARRIÈRE DE PHASE (agrège les N items en 1)\nOrdre : C-V2-09 (LLM Anthropic × N scènes) → C-V2-10 (Normaliser JS) → C-V2-11 (Persister UPSERT) → C-V2-11b (UPDATE nb_plans_total)",
+        "height": 384,
+        "width": 1216
       },
       "type": "n8n-nodes-base.stickyNote",
       "typeVersion": 1,
       "position": [
-        -8880,
-        -1680
+        1648,
+        176
       ],
-      "id": "bbf13ff8-af98-433f-9d61-0fcfeef46356",
+      "id": "7e485b6b-b13b-44e1-abfb-f68d5dfe8a03",
       "name": "Sticky Note1"
     },
     {
       "parameters": {
-        "content": "# 🧠 Analyse IA (C06-C09)\n\n**Persistance des contenus et analyse par Claude**\n\n- C06 · Upsert table `contenus`\n- C07 · Analyse IA (Claude Opus)\n- C08 · Parsing JSON de la réponse IA\n- C09 · Upsert table `analyses`\n\n📊 Sortie : resume, theme, sentiment, score_qualite, mots_cles",
-        "height": 1200,
-        "width": 932,
-        "color": "#FFFF00"
+        "modelId": {
+          "__rl": true,
+          "value": "claude-sonnet-5",
+          "mode": "list",
+          "cachedResultName": "claude-sonnet-5"
+        },
+        "messages": {
+          "values": [
+            {
+              "content": "=Tu es un expert en réalisation vidéo et en découpage technique de scènes pour vidéos courtes (TikTok, YouTube Shorts, Reels).\n\nTa mission est de découper la scène suivante en plans visuels distincts et réalistes.\n\nContexte de la scène :\n- Numéro de scène : {{ $json.numero_scene }}\n- Texte narratif : {{ $json.texte_narratif }}\n- Ambiance visuelle : {{ $json.ambiance_visuelle }}\n- Durée totale estimée de la scène : {{ $json.duree_estimee }} secondes\n\nContraintes :\n- crée entre 2 et 4 plans par scène ;\n- chaque plan doit correspondre à un cadrage ou un angle visuel spécifique ;\n- la description visuelle doit être précise et actionnable pour un outil de génération d'image IA ;\n- la numérotation doit commencer à 1 et être strictement séquentielle ;\n- chaque plan doit avoir une durée entière et strictement positive ;\n- la somme des durées des plans doit rester proche de la durée totale de la scène ({{ $json.duree_estimee }}s).\n\nRetourne UNIQUEMENT un objet JSON valide, sans aucun texte autour, sans markdown, sans balises ```.\n\nFormat obligatoire :\n\n{\n  \"plans\": [\n    {\n      \"numero_plan\": 1,\n      \"description_visuelle\": \"Description précise du plan (cadrage, sujet, éclairage, ambiance)\",\n      \"duree_estimee\": 4\n    }\n  ]\n}"
+            }
+          ]
+        },
+        "options": {
+          "maxTokens": 1500
+        }
       },
-      "type": "n8n-nodes-base.stickyNote",
+      "type": "@n8n/n8n-nodes-langchain.anthropic",
       "typeVersion": 1,
       "position": [
-        -7312,
-        -1664
+        1680,
+        288
       ],
-      "id": "19c573f0-40e1-4fc9-90ff-25eaa24bc225",
-      "name": "Sticky Note2"
+      "id": "f37ae2f3-d799-4af1-b70a-09cc45bfd132",
+      "name": "C-V2-09 · Générer Plans IA",
+      "credentials": {
+        "anthropicApi": {
+          "id": "w7OEC4dThiZIPIES",
+          "name": "Anthropic account 2"
+        }
+      }
     },
     {
       "parameters": {
-        "content": "# 🎬 Génération Script (C10-C13)\n\n**Création du script vidéo viral par contenu**\n\n- C10 · Lecture analyse + contenu (JOIN SQL)\n- C11 · Génération script (Claude Sonnet)\n- C12 · Parsing JSON *(boucle sur TOUS les items)*\n- C13 · Upsert table `scripts`\n\n⚠️ C12 doit boucler sur `$input.all()` — ne pas régresser.",
-        "height": 1200,
-        "width": 852,
-        "color": "#FF00FF"
+        "jsCode": "// C-V2-10 · Normaliser Plans\n// V2-010 §5 — Parsing + validation + N items (1 par plan)\n// Correspondance item ↔ scène : préservation d'ordre par n8n (Anthropic)\n// Chaque item Anthropic correspond à la scène de même index dans C-V2-08\n\nconst scenesInput = $('C-V2-08 · Persister Scènes').all();\nconst anthropicItems = $input.all();\n\nif (scenesInput.length !== anthropicItems.length) {\n  throw new Error(\n    'Désalignement scenes/plans : ' + scenesInput.length + ' scènes mais ' +\n    anthropicItems.length + ' réponses IA. Vérifier la préservation d\\'ordre n8n.'\n  );\n}\n\nconst results = [];\n\nfor (let i = 0; i < anthropicItems.length; i++) {\n  const item  = anthropicItems[i];\n  const scene = scenesInput[i].json;\n\n  // scene_id vient du RETURNING de C-V2-08 (aliasé en \"scene_id\")\n  const scene_id     = scene.scene_id;\n  const numero_scene = scene.numero_scene;\n  const dossier_id   = scene.dossier_id;\n\n  if (!scene_id) {\n    throw new Error('scene_id introuvable pour l\\'index ' + i + ' — vérifier C-V2-08');\n  }\n\n  // Extraction du bloc \"text\" de la réponse Anthropic\n  let raw = '';\n  if (Array.isArray(item.json.content)) {\n    const textBlock = item.json.content.find(b => b.type === 'text');\n    if (textBlock && textBlock.text) {\n      raw = textBlock.text.trim();\n    }\n  }\n\n  if (!raw) {\n    throw new Error('Aucun bloc \"text\" trouvé pour la scène ' + numero_scene);\n  }\n\n  // Nettoyage défensif des balises markdown (TU-04)\n  if (raw.startsWith('```')) {\n    raw = raw.replace(/^```[a-z]*\\n?/i, '').replace(/```\\s*$/, '').trim();\n  }\n\n  // Parsing JSON\n  let parsed;\n  try {\n    parsed = JSON.parse(raw);\n  } catch (e) {\n    throw new Error(\n      'Échec parsing JSON plans pour scène ' + numero_scene + ' : ' +\n      raw.substring(0, 200)\n    );\n  }\n\n  // Validation structure\n  if (!parsed.plans || !Array.isArray(parsed.plans)) {\n    throw new Error('Structure JSON invalide (scène ' + numero_scene + ') : tableau plans absent');\n  }\n\n  if (parsed.plans.length === 0) {\n    throw new Error('Tableau plans vide pour la scène ' + numero_scene);\n  }\n\n  // Validation et émission d'1 item par plan\n  for (const plan of parsed.plans) {\n    if (\n      plan.numero_plan === undefined ||\n      plan.numero_plan === null ||\n      !plan.description_visuelle ||\n      String(plan.description_visuelle).trim() === '' ||\n      plan.duree_estimee === undefined ||\n      plan.duree_estimee === null\n    ) {\n      throw new Error(\n        'Plan incomplet (scène ' + numero_scene + ') — champs obligatoires manquants : ' +\n        JSON.stringify(plan)\n      );\n    }\n\n    if (typeof plan.numero_plan !== 'number' || !Number.isInteger(plan.numero_plan)) {\n      throw new Error('numero_plan doit être un entier (scène ' + numero_scene + ') : ' + JSON.stringify(plan.numero_plan));\n    }\n\n    if (typeof plan.duree_estimee !== 'number' || plan.duree_estimee <= 0) {\n      throw new Error('duree_estimee doit être un entier positif (scène ' + numero_scene + ') : ' + JSON.stringify(plan.duree_estimee));\n    }\n\n    results.push({\n      json: {\n        scene_id             : scene_id,\n        dossier_id           : dossier_id,\n        numero_scene         : numero_scene,\n        numero_plan          : plan.numero_plan,\n        description_visuelle : String(plan.description_visuelle).trim(),\n        duree_estimee        : Math.round(plan.duree_estimee)\n      }\n    });\n  }\n}\n\nreturn results;"
       },
-      "type": "n8n-nodes-base.stickyNote",
-      "typeVersion": 1,
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
       "position": [
-        -6336,
-        -1664
+        2032,
+        288
       ],
-      "id": "1d6c22f8-82dc-4abc-a197-e07d097637e2",
-      "name": "Sticky Note3"
+      "id": "c6369f0c-bd45-42b3-a0f2-bd04dc157a1b",
+      "name": "C-V2-10 · Normaliser Plans"
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "INSERT INTO v2_plans (\n  scene_id,\n  numero_plan,\n  description_visuelle,\n  duree_estimee,\n  statut\n)\nVALUES (\n  {{ $json.scene_id }},\n  {{ $json.numero_plan }},\n  '{{ $json.description_visuelle.replace(/'/g, \"''\") }}',\n  {{ $json.duree_estimee }},\n  'EN_ATTENTE'\n)\nON CONFLICT (scene_id, numero_plan) DO UPDATE\n  SET description_visuelle = EXCLUDED.description_visuelle,\n      duree_estimee        = EXCLUDED.duree_estimee\nRETURNING \n  id AS plan_id,\n  scene_id,\n  numero_plan,\n  description_visuelle,\n  duree_estimee,\n  statut;",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.6,
+      "position": [
+        2240,
+        288
+      ],
+      "id": "51f274a2-cc1e-46ad-b0cc-ccac80eddddf",
+      "name": "C-V2-11 · Persister Plans",
+      "credentials": {
+        "postgres": {
+          "id": "9CJdZfap0gHnWIUB",
+          "name": "ia-contenu-prod"
+        }
+      }
     },
     {
       "parameters": {
         "aggregate": "aggregateAllItemData",
+        "destinationFieldName": "plans_persistes",
         "options": {}
       },
       "type": "n8n-nodes-base.aggregate",
       "typeVersion": 1,
       "position": [
-        -8112,
-        -1200
+        2448,
+        288
       ],
-      "id": "c5ff2d06-786c-4474-9c30-06553740651d",
-      "name": "Aggregate Contenus"
-    },
-    {
-      "parameters": {
-        "jsCode": "const aggregated = $input.first().json;\n\n// Le tableau complet des contenus est maintenant dans \"data\"\nconst contenus = aggregated.data;\n\n// On récupère l'id campagne depuis le premier contenu\nconst campagneId = contenus[0].campagne_id;\n\nreturn [{\n  json: {\n    campagne_id: campagneId,\n    nb_total: contenus.length,\n    contenus: contenus\n  }\n}];"
-      },
-      "type": "n8n-nodes-base.code",
-      "typeVersion": 2,
-      "position": [
-        -7904,
-        -1200
-      ],
-      "id": "fa69e887-c3dd-4898-8371-938155178c17",
-      "name": "Préparer Total Campagne"
+      "id": "11e84359-47bc-4776-b043-b385d53022b4",
+      "name": "Agg · Plans → 1 item"
     },
     {
       "parameters": {
         "operation": "executeQuery",
-        "query": "UPDATE campagnes\nSET nb_contenus_total = {{ $json.nb_total }}\nWHERE id = {{ Number($json.campagne_id) }};",
+        "query": "UPDATE v2_dossiers_production\nSET nb_plans_total = (\n  SELECT COUNT(*)\n  FROM v2_plans p\n  JOIN v2_scenes s ON s.id = p.scene_id\n  WHERE s.dossier_id = {{ $('C-V2-05 · Créer Dossier V2').first().json.id }}\n)\nWHERE id = {{ $('C-V2-05 · Créer Dossier V2').first().json.id }}\nRETURNING \n  id AS dossier_id, \n  nb_plans_total, \n  nb_plans_traites, \n  statut;",
         "options": {}
       },
       "type": "n8n-nodes-base.postgres",
       "typeVersion": 2.6,
       "position": [
-        -7696,
-        -1200
+        2656,
+        288
       ],
-      "id": "3fcc0950-00b6-4997-8a12-0c12718c2995",
-      "name": "Update Total Campagne",
+      "id": "bca799c8-3030-4d65-a007-6cae8a7b8d6f",
+      "name": "C-V2-11b · Mettre à Jour Total Plans",
       "credentials": {
         "postgres": {
           "id": "9CJdZfap0gHnWIUB",
           "name": "ia-contenu-prod"
         }
       }
-    },
-    {
-      "parameters": {
-        "jsCode": "const data = $('Préparer Total Campagne').first().json;\nconst contenus = data.contenus || [];\n\nreturn contenus.map(contenu => ({\n  json: contenu\n}));"
-      },
-      "type": "n8n-nodes-base.code",
-      "typeVersion": 2,
-      "position": [
-        -7504,
-        -1200
-      ],
-      "id": "8526199c-0def-428d-ad90-f279e29b12aa",
-      "name": "Redistribuer Contenus"
-    },
-    {
-      "parameters": {
-        "operation": "executeQuery",
-        "query": "UPDATE campagnes\nSET\n  nb_contenus_traites = nb_contenus_traites + 1,\n  statut = CASE\n    WHEN nb_contenus_traites + 1 >= nb_contenus_total THEN 'TERMINEE'\n    ELSE statut\n  END,\n  date_fin = CASE\n    WHEN nb_contenus_traites + 1 >= nb_contenus_total THEN NOW()\n    ELSE date_fin\n  END\nWHERE id = $1;",
-        "options": {
-          "queryReplacement": "={{ $json.campagne_id }}"
-        }
-      },
-      "type": "n8n-nodes-base.postgres",
-      "typeVersion": 2.6,
-      "position": [
-        -5136,
-        -1200
-      ],
-      "id": "356e4275-93f0-46fc-a1a1-b774cf53d66e",
-      "name": "Increment Traites",
-      "credentials": {
-        "postgres": {
-          "id": "9CJdZfap0gHnWIUB",
-          "name": "ia-contenu-prod"
-        }
-      }
-    },
-    {
-      "parameters": {
-        "jsCode": "const results = [];\n\nfor (let i = 0; i < $input.all().length; i++) {\n  const scriptPersiste = $input.all()[i].json;\n  const normScript = $('Normalisation Script IA').all()[i].json;\n\n  results.push({\n    json: {\n      script_id: scriptPersiste.id,\n      campagne_id: normScript.campagne_id,\n      contenu_id: normScript.contenu_id,\n      analyse_id: normScript.analyse_id\n    }\n  });\n}\n\nreturn results;"
-      },
-      "type": "n8n-nodes-base.code",
-      "typeVersion": 2,
-      "position": [
-        -5376,
-        -1200
-      ],
-      "id": "afd25055-784e-42f3-ab02-7e78f12ffb6a",
-      "name": "Préparer Increment"
-    },
-    {
-      "parameters": {
-        "content": "# 🚀 Initialisation (C01-C02)\n\n**Réception et validation de la demande**\n\n- C01 · Webhook `POST /lancer-campagne`\n- C02 · Validation : sujet, plateforme, langue, nb_resultats > 0\n\n⚠️ Toute requête invalide est rejetée ici.",
-        "height": 1184,
-        "width": 640,
-        "color": "#0000FF"
-      },
-      "type": "n8n-nodes-base.stickyNote",
-      "typeVersion": 1,
-      "position": [
-        -9568,
-        -1680
-      ],
-      "id": "d9b4873b-cf42-4564-a3bf-3c48078a04e6",
-      "name": "Sticky Note"
-    },
-    {
-      "parameters": {
-        "content": "# 🏁 Suivi & Clôture (C14-C15)\n\n**Comptage des traités et fin de campagne**\n\n- C14 · Préparer Increment *(transporte campagne_id, boucle sur tous les items)*\n- C15 · UPDATE nb_contenus_traites + 1\n  → statut = TERMINEE quand traités >= total (décision en SQL)\n\n🔑 La base de données décide de la fin, pas n8n.",
-        "height": 1200,
-        "width": 464,
-        "color": "#808080"
-      },
-      "type": "n8n-nodes-base.stickyNote",
-      "typeVersion": 1,
-      "position": [
-        -5456,
-        -1664
-      ],
-      "id": "fc3c63ea-8a49-49bd-bc47-071b6b3a5a4c",
-      "name": "Sticky Note4"
-    },
-    {
-      "parameters": {
-        "content": "### 📡 Système de Veille de Contenus Viraux — V1 STABLE\n\n**Pipeline** : Webhook → Collecte YouTube → Analyse IA → Scripts viraux → Clôture\n\n- 🗄️ Base : Supabase (campagnes, contenus, analyses, scripts, journal_execution)\n- 🤖 IA : Claude Opus (analyse) + Claude Sonnet (scripts)\n- ⚠️ Workflow d'erreur séparé : capture + log + statut ERREUR\n- 📅 Validé le : 03/08 — Tests 1, 4 et 10 contenus ✅",
-        "height": 1696,
-        "width": 560
-      },
-      "type": "n8n-nodes-base.stickyNote",
-      "typeVersion": 1,
-      "position": [
-        -10208,
-        -2048
-      ],
-      "id": "a2aa34bb-d625-4fd2-8bcf-b59572883111",
-      "name": "Sticky Note5"
     }
   ],
   "pinData": {},
   "connections": {
-    "Recevoir Demande Campagne": {
+    "C-V2-01 · Recevoir Demande V2": {
       "main": [
         [
           {
-            "node": "Valider Paramètres",
+            "node": "C-V2-02 · Valider Paramètres V2",
             "type": "main",
             "index": 0
           }
         ]
       ]
     },
-    "Valider Paramètres": {
+    "C-V2-03 · Lire Contexte V1": {
       "main": [
         [
           {
-            "node": "Créer Campagne",
+            "node": "IF · Contexte V1 Trouvé ?",
             "type": "main",
             "index": 0
           }
         ]
       ]
     },
-    "Créer Campagne": {
+    "C-V2-04 · Vérifier Outils V2": {
       "main": [
         [
           {
-            "node": "Collecte des contenus",
+            "node": "IF · Outils Valides ?",
             "type": "main",
             "index": 0
           }
         ]
       ]
     },
-    "Collecte des contenus": {
+    "C-V2-05 · Créer Dossier V2": {
       "main": [
         [
           {
-            "node": "Normalisation",
+            "node": "C-V2-05b · Créer Checklist (1/2)",
             "type": "main",
             "index": 0
           }
         ]
       ]
     },
-    "Normalisation": {
+    "C-V2-05b · Créer Checklist (1/2)": {
       "main": [
         [
           {
-            "node": "Aggregate Contenus",
+            "node": "C-V2-05b · Créer Checklist (2/2)",
             "type": "main",
             "index": 0
           }
         ]
       ]
     },
-    "Persistance des contenus": {
+    "C-V2-02 · Valider Paramètres V2": {
       "main": [
         [
           {
-            "node": "Analyse IA",
+            "node": "C-V2-03 · Lire Contexte V1",
             "type": "main",
             "index": 0
           }
         ]
       ]
     },
-    "Analyse IA": {
+    "IF · Contexte V1 Trouvé ?": {
       "main": [
         [
           {
-            "node": "Normalisation Analyse IA",
+            "node": "C-V2-04 · Vérifier Outils V2",
             "type": "main",
             "index": 0
           }
         ]
       ]
     },
-    "Normalisation Analyse IA": {
+    "IF · Outils Valides ?": {
       "main": [
         [
           {
-            "node": "Persistance Analyse",
+            "node": "C-V2-05 · Créer Dossier V2",
             "type": "main",
             "index": 0
           }
         ]
       ]
     },
-    "Persistance Analyse": {
+    "C-V2-05b · Créer Checklist (2/2)": {
       "main": [
         [
           {
-            "node": "Lecture Analyse et Contenu",
+            "node": "C-V2-06 · Générer Scènes IA",
             "type": "main",
             "index": 0
           }
         ]
       ]
     },
-    "Lecture Analyse et Contenu": {
+    "C-V2-06 · Générer Scènes IA": {
       "main": [
         [
           {
-            "node": "Génération Script IA",
+            "node": "C-V2-07 · Normaliser Scènes",
             "type": "main",
             "index": 0
           }
         ]
       ]
     },
-    "Génération Script IA": {
+    "C-V2-07 · Normaliser Scènes": {
       "main": [
         [
           {
-            "node": "Normalisation Script IA",
+            "node": "C-V2-08 · Persister Scènes",
             "type": "main",
             "index": 0
           }
         ]
       ]
     },
-    "Normalisation Script IA": {
+    "C-V2-08 · Persister Scènes": {
       "main": [
         [
           {
-            "node": "Persistance Script",
+            "node": "C-V2-09 · Générer Plans IA",
             "type": "main",
             "index": 0
           }
         ]
       ]
     },
-    "Persistance Script": {
+    "C-V2-09 · Générer Plans IA": {
       "main": [
         [
           {
-            "node": "Préparer Increment",
+            "node": "C-V2-10 · Normaliser Plans",
             "type": "main",
             "index": 0
           }
         ]
       ]
     },
-    "Aggregate Contenus": {
+    "C-V2-10 · Normaliser Plans": {
       "main": [
         [
           {
-            "node": "Préparer Total Campagne",
+            "node": "C-V2-11 · Persister Plans",
             "type": "main",
             "index": 0
           }
         ]
       ]
     },
-    "Préparer Total Campagne": {
+    "C-V2-11 · Persister Plans": {
       "main": [
         [
           {
-            "node": "Update Total Campagne",
+            "node": "Agg · Plans → 1 item",
             "type": "main",
             "index": 0
           }
         ]
       ]
     },
-    "Update Total Campagne": {
+    "Agg · Plans → 1 item": {
       "main": [
         [
           {
-            "node": "Redistribuer Contenus",
-            "type": "main",
-            "index": 0
-          }
-        ]
-      ]
-    },
-    "Redistribuer Contenus": {
-      "main": [
-        [
-          {
-            "node": "Persistance des contenus",
-            "type": "main",
-            "index": 0
-          }
-        ]
-      ]
-    },
-    "Increment Traites": {
-      "main": [
-        []
-      ]
-    },
-    "Préparer Increment": {
-      "main": [
-        [
-          {
-            "node": "Increment Traites",
+            "node": "C-V2-11b · Mettre à Jour Total Plans",
             "type": "main",
             "index": 0
           }
@@ -1142,20 +657,20 @@
       ]
     }
   },
-  "active": true,
+  "active": false,
   "settings": {
     "executionOrder": "v1",
     "binaryMode": "separate",
     "timeSavedMode": "fixed",
-    "errorWorkflow": "MPV8dEdAPPoUcuCV",
+    "errorWorkflow": "GeGB8DSmC0Bmsj7s",
     "callerPolicy": "workflowsFromSameOwner",
     "availableInMCP": false
   },
-  "versionId": "712f29b8-a96a-4ada-8e26-45325e6a17fe",
+  "versionId": "d1dab45e-7263-43c5-b333-60491318a080",
   "meta": {
     "templateCredsSetupCompleted": true,
     "instanceId": "09a4271ff440e2d4ed1d23d70521c8ceadc5f0cf389b7a9fad7d7fcb78f3bb2c"
   },
-  "id": "8oPlIMKJ4E7IgmT4",
+  "id": "A2AmECQZN9PsK0Ky",
   "tags": []
 }
