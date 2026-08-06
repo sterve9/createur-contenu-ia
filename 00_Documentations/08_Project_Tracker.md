@@ -22,8 +22,8 @@ Il pilote uniquement l'avancement du projet.
 
 - **Projet** : Assistant IA pour Créateurs de Contenu
 - **Version courante** : **V2 — Développement en cours (~35 %)**
-- **Statut global** : 🟢 V1 STABLE verrouillée. Conception V2 100 % terminée. **Développement V2 en cours : fondations posées (DDL Supabase appliqué, catalogue outils peuplé, credentials configurés, workflow V2-ERR opérationnel dans n8n et publié sur GitHub). Clarification architecturale levée le 06/08/2026 (ADR-V2-01/02 : hiérarchie documentaire + pattern monolithique actés). Reste à créer le workflow monolithique `V2 — Créateur de Dossier de Production` (6 blocs métier), le rattacher à V2-ERR, puis smoke test TE2E-01.**
-- **Phase actuelle** : Développement de la V2 (implémentation n8n + Supabase) — clarification architecturale terminée, prêt pour la construction du workflow monolithique
+- **Statut global** : 🟢 V1 STABLE verrouillée. Conception V2 100 % terminée. **Développement V2 en cours : fondations posées (DDL Supabase appliqué, catalogue outils peuplé, credentials configurés, workflow V2-ERR opérationnel). Audit V2-010 vs Supabase réalisé le 06/08/2026 : 1 écart bloquant corrigé (C-V2-03), V2-010 désormais 100 % fiable. Architecture monolithique actée (ADR-V2-02). Prêt pour la construction du workflow `V2 — Créateur de Dossier de Production`.**
+- **Phase actuelle** : Développement de la V2 (implémentation n8n + Supabase) — audit terminé, prêt pour la construction
 - **Dernière mise à jour** : 06 août 2026
 
 ---
@@ -38,8 +38,8 @@ Il pilote uniquement l'avancement du projet.
 **Livrables attendus** :
 1. ✅ **Exécuter le DDL V2 dans Supabase** (`02.3.V2_Schema_Physique_des_Donnees.md`) — *Fait*
 2. ✅ **Peupler la table `v2_outils`** avec les 8 outils du catalogue (`05.V2_Implementation_Technique.md`, section 2.4) — *Fait*
-3. 🟡 **Créer le workflow monolithique `V2 — Créateur de Dossier de Production`** selon `05.V2_Implementation_Technique.md` et ADR-V2-02 (1 seul workflow n8n contenant les nœuds C-V2-01 à C-V2-22, regroupés par Sticky Notes) :
-   - ⬜ Bloc V2-ORCH (C-V2-01 → C-V2-05b)
+3. 🟡 **Créer le workflow monolithique `V2 — Créateur de Dossier de Production`** selon `05.V2_Implementation_Technique.md` (corrigé le 06/08/2026) et ADR-V2-02 (1 seul workflow n8n contenant les nœuds C-V2-01 à C-V2-22, regroupés par Sticky Notes) :
+   - ⬜ Bloc V2-ORCH (C-V2-01 → C-V2-05b) — **prochaine étape**
    - ⬜ Bloc V2-SCENE (C-V2-06 → C-V2-08)
    - ⬜ Bloc V2-PLAN (C-V2-09 → C-V2-11b)
    - ⬜ Bloc V2-IMG (C-V2-13 → C-V2-15)
@@ -55,13 +55,14 @@ Il pilote uniquement l'avancement du projet.
 ## 📂 Documents à ouvrir (dans cet ordre uniquement)
 
 1. `08_Project_Tracker.md` (ce document)
-2. `06.V2_Journal_des_Decisions_d_Architecture.md` — **ADR-V2-01 et ADR-V2-02 actés le 06/08/2026 (hiérarchie + pattern monolithique)**
-3. `05.V2_Implementation_Technique.md` — **document principal de l'implémentation**, contient tout le SQL et la syntaxe n8n
-4. `02.3.V2_Schema_Physique_des_Donnees.md` — DDL des tables V2
-5. `03.V2_Architecture_des_Workflows.md` — vue d'ensemble des workflows (pour référence métier, voir ADR-V2-01)
-6. `04.V2_Specification_des_Composants.md` — comportement attendu par composant
-7. `04.1.V2_Catalogue_Outils.md` — conventions de prompt par outil
-8. `07.V2_Plan_de_tests.md` — pour le smoke test et la validation
+2. `06.V2_Journal_des_Decisions_d_Architecture.md` — **ADR-V2-01/02/03 actés le 06/08/2026**
+3. `V2-DEV_Audit_V2-010_vs_Realite_Supabase_2026-08-06.md` — **rapport d'audit complet**
+4. `05.V2_Implementation_Technique.md` — **document principal de l'implémentation (corrigé le 06/08/2026)**, contient tout le SQL et la syntaxe n8n
+5. `02.3.V2_Schema_Physique_des_Donnees.md` — DDL des tables V2
+6. `03.V2_Architecture_des_Workflows.md` — vue d'ensemble des workflows (pour référence métier, voir ADR-V2-01)
+7. `04.V2_Specification_des_Composants.md` — comportement attendu par composant
+8. `04.1.V2_Catalogue_Outils.md` — conventions de prompt par outil
+9. `07.V2_Plan_de_tests.md` — pour le smoke test et la validation
 
 ---
 
@@ -186,6 +187,8 @@ Accessible depuis un **tableau de bord personnel**.
 - ✅ Plan de tests V2 formalisé : 31 tests couvrant unitaire, intégration, E2E, non-régression V1, idempotence, résilience isolée
 - ✅ **ADR-V2-01** : Hiérarchie de vérité `Supabase > V2-010 > V2-008` actée — `v2_dossiers_production` fait foi (06/08/2026)
 - ✅ **ADR-V2-02** : Pattern n8n monolithique acté — 1 seul workflow `V2 — Créateur de Dossier de Production` + V2-ERR séparé (06/08/2026)
+- ✅ **ADR-V2-03** : Correction C-V2-03 actée — chemin FK `scripts → analyses → contenus → campagnes` aligné sur Supabase réel (06/08/2026)
+- ✅ **Audit V2-010 vs Supabase** réalisé le 06/08/2026 : 21/22 nœuds conformes, 1 écart bloquant corrigé, V2-010 désormais 100 % fiable
 
 ### Ce que la V2 n'est PAS
 
@@ -217,11 +220,12 @@ Accessible depuis un **tableau de bord personnel**.
 | `03.V2_Architecture_des_Workflows` | ✅ (pour référence métier — voir ADR-V2-01 pour l'implémentation) |
 | `04.V2_Specification_des_Composants` | ✅ |
 | `04.1.V2_Catalogue_Outils` | ✅ |
-| `05.V2_Implementation_Technique` | ✅ |
-| `06.V2_Journal_des_Decisions_d_Architecture` | ✅ (ADR-V2-01 + ADR-V2-02 actés le 06/08/2026) |
+| `05.V2_Implementation_Technique` | ✅ (corrigé le 06/08/2026 — C-V2-03) |
+| `06.V2_Journal_des_Decisions_d_Architecture` | ✅ (ADR-V2-01 + ADR-V2-02 + ADR-V2-03 actés le 06/08/2026) |
 | `07.V2_Plan_de_tests` | ✅ |
+| `V2-DEV_Audit_V2-010_vs_Realite_Supabase_2026-08-06` | ✅ (audit 06/08/2026) |
 
-**🎉 Conception V2 : 12 documents produits, 100 % complets + 2 ADR structurants actés.**
+**🎉 Conception V2 : 12 documents produits, 100 % complets + 3 ADR structurants + audit de conformité.**
 
 ### Implémentation V2
 
@@ -230,7 +234,8 @@ Accessible depuis un **tableau de bord personnel**.
 | DDL V2 appliqué dans Supabase | ✅ Fait |
 | Catalogue `v2_outils` peuplé (8 outils) | ✅ Fait |
 | Workflow V2-ERR (Gestionnaire d'Erreurs) | ✅ Créé, importé, activé (Published), pushé sur GitHub |
-| Workflow monolithique `V2 — Créateur de Dossier de Production` | ⬜ À faire (6 blocs : ORCH/SCENE/PLAN/IMG/ANIM/PUB) |
+| Audit V2-010 vs réalité Supabase | ✅ Réalisé le 06/08/2026 — 1 écart corrigé |
+| Workflow monolithique `V2 — Créateur de Dossier de Production` | ⬜ À faire (6 blocs : ORCH/SCENE/PLAN/IMG/ANIM/PUB) — **V2-010 désormais fiable** |
 | Credentials n8n (Anthropic API + Supabase PostgreSQL) | ✅ Fait |
 | Rattachement V2-ERR au workflow monolithique | ⏳ En attente |
 | Smoke test TE2E-01 | ⬜ À faire |
@@ -241,7 +246,7 @@ Accessible depuis un **tableau de bord personnel**.
 
 **V2-DEV — Développement V2 (en cours, ~35 %) — Étape suivante : construire le bloc V2-ORCH du workflow monolithique**
 
-Poursuivre l'implémentation du workflow monolithique `V2 — Créateur de Dossier de Production` selon `05.V2_Implementation_Technique.md` et les ADR-V2-01/02 :
+Poursuivre l'implémentation du workflow monolithique `V2 — Créateur de Dossier de Production` selon `05.V2_Implementation_Technique.md` (**corrigé le 06/08/2026**) et les ADR-V2-01/02/03 :
 
 1. Créer le workflow `V2 — Créateur de Dossier de Production` dans n8n.
 2. Implémenter le **bloc V2-ORCH** (C-V2-01 → C-V2-05b : webhook, validations, lecture V1, création dossier + checklist).
@@ -300,7 +305,7 @@ Après implémentation complète : exécuter les 31 tests du plan de tests V2.
 | Architecture workflows V2 | ✅ |
 | Spécification composants V2 | ✅ |
 | Catalogue outils V2 | ✅ |
-| Implémentation technique V2 | ✅ |
+| Implémentation technique V2 | ✅ (corrigé le 06/08/2026) |
 | Plan de tests V2 | ✅ |
 | **🎉 Conception V2 — 100 % terminée** | ✅ |
 | **Développement V2** | 🟡 En cours (~35 %) |
@@ -334,6 +339,8 @@ Après implémentation complète : exécuter les 31 tests du plan de tests V2.
 | 2026-08-06 | 🚨 **Workflow V2-ERR opérationnel dans n8n** | Créé, importé, activé (Published), exporté en JSON dans `workflows/V2/V2-ERR_Gestionnaire_Erreurs.json`, pushé sur GitHub (commit `9a4f1b0`). Credentials n8n configurés (Anthropic API + Supabase PostgreSQL `ia-contenu-prod`) |
 | 2026-08-06 | 📐 **ADR-V2-01 acté** | Hiérarchie de vérité `Supabase > V2-010 > V2-008` validée. Terme `v2_campagnes` banni au profit de `v2_dossiers_production` |
 | 2026-08-06 | 🏛️ **ADR-V2-02 acté** | Pattern n8n monolithique validé : 1 seul workflow `V2 — Créateur de Dossier de Production` (C-V2-01 → C-V2-22) + V2-ERR séparé |
+| 2026-08-06 | 🔍 **Audit V2-010 vs Supabase réalisé** | Audit complet via `information_schema` : 21/22 nœuds conformes, 1 écart bloquant (C-V2-03) identifié, 5 contraintes `ON CONFLICT` vérifiées et conformes |
+| 2026-08-06 | 🔧 **ADR-V2-03 acté + V2-010 corrigé** | Requête C-V2-03 corrigée (chemin FK `scripts.analyse_id → analyses → contenus → campagnes`). V2-010 désormais 100 % fiable, prêt pour construction n8n |
 
 ---
 
