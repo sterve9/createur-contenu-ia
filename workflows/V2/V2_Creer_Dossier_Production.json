@@ -1,97 +1,837 @@
 {
-  "name": "V2 — Créateur de Dossier de Production",
+  "name": "système de veille de contenus viraux",
   "nodes": [
     {
       "parameters": {
-        "content": "🧱 V2-ORCH — Orchestration (C-V2-01 à C-V2-05b)\nBloc 1/6 du workflow monolithique — 8 nœuds physiques\nV2-010 §3 | ADR-V2-03 Révisé 07/08/2026 : chemin simplifié scripts → contenus → campagnes (2 JOINs)\nOrdre : C-V2-01 (Webhook) → C-V2-02 (IF validation) → C-V2-03 (Lire Contexte V1) → IF Contexte Trouvé → C-V2-04 (Vérif Outils) → C-V2-05 (Créer Dossier) → C-V2-05b 1/2 + 2/2 (Checklist 9 étapes)",
-        "height": 380,
-        "width": 2082,
-        "color": 4
+        "httpMethod": "POST",
+        "path": "lancer-campagne",
+        "options": {}
       },
-      "id": "3b2e9e2d-f1b9-445b-9568-763526da3f64",
-      "name": "Sticky — V2-ORCH",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2.1,
+      "position": [
+        -9440,
+        -1024
+      ],
+      "id": "f7a856bc-8755-4bc2-bcf4-cb98b7ef357e",
+      "name": "Recevoir Demande Campagne",
+      "webhookId": "de14c439-8909-4431-ac86-9844c9a7c7ab"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 3
+          },
+          "conditions": [
+            {
+              "id": "cf0a4663-834b-40ca-98e4-c67dd99c9fb8",
+              "leftValue": "={{ $json.body.sujet }}",
+              "rightValue": "",
+              "operator": {
+                "type": "string",
+                "operation": "notEmpty",
+                "singleValue": true
+              }
+            },
+            {
+              "id": "e20e2faa-2222-4870-be9c-50aee28f5ab9",
+              "leftValue": "={{ $json.body.plateforme }}",
+              "rightValue": "",
+              "operator": {
+                "type": "string",
+                "operation": "notEmpty",
+                "singleValue": true
+              }
+            },
+            {
+              "id": "ae2fa73c-72c0-4f78-9834-cba7eb4c2ad1",
+              "leftValue": "={{ $json.body.langue }}",
+              "rightValue": "",
+              "operator": {
+                "type": "string",
+                "operation": "notEmpty",
+                "singleValue": true
+              }
+            },
+            {
+              "id": "9e36f612-998d-4ed2-942c-b462d867a5a5",
+              "leftValue": "={{ $json.body.nb_resultats }}",
+              "rightValue": 0,
+              "operator": {
+                "type": "number",
+                "operation": "gt"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.3,
+      "position": [
+        -9200,
+        -1024
+      ],
+      "id": "dc6d8e95-719b-4621-b39d-228d51d34803",
+      "name": "Valider Paramètres"
+    },
+    {
+      "parameters": {
+        "schema": {
+          "__rl": true,
+          "value": "public",
+          "mode": "list",
+          "cachedResultName": "public"
+        },
+        "table": {
+          "__rl": true,
+          "value": "campagnes",
+          "mode": "list",
+          "cachedResultName": "campagnes"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "nb_resultats": "={{ $json.body.nb_resultats }}",
+            "sujet": "={{ $json.body.sujet }}",
+            "plateforme": "={{ $json.body.plateforme }}",
+            "langue": "={{ $json.body.langue }}",
+            "statut": "EN_COURS",
+            "execution_id": "={{ $execution.id }}"
+          },
+          "matchingColumns": [
+            "id"
+          ],
+          "schema": [
+            {
+              "id": "id",
+              "displayName": "id",
+              "required": false,
+              "defaultMatch": true,
+              "display": true,
+              "type": "number",
+              "canBeUsedToMatch": true,
+              "removed": true
+            },
+            {
+              "id": "created_at",
+              "displayName": "created_at",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "dateTime",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "sujet",
+              "displayName": "sujet",
+              "required": true,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "plateforme",
+              "displayName": "plateforme",
+              "required": true,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "langue",
+              "displayName": "langue",
+              "required": true,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "nb_resultats",
+              "displayName": "nb_resultats",
+              "required": true,
+              "defaultMatch": false,
+              "display": true,
+              "type": "number",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "statut",
+              "displayName": "statut",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "date_fin",
+              "displayName": "date_fin",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "dateTime",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "execution_id",
+              "displayName": "execution_id",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.6,
+      "position": [
+        -8848,
+        -1200
+      ],
+      "id": "fffa64cd-518d-457f-aada-38dcb58eaf86",
+      "name": "Créer Campagne",
+      "credentials": {
+        "postgres": {
+          "id": "9CJdZfap0gHnWIUB",
+          "name": "ia-contenu-prod"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "url": "https://www.googleapis.com/youtube/v3/search",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "sendQuery": true,
+        "queryParameters": {
+          "parameters": [
+            {
+              "name": "part",
+              "value": "snippet"
+            },
+            {
+              "name": "type",
+              "value": "video"
+            },
+            {
+              "name": "q",
+              "value": "={{ $json.sujet }}"
+            },
+            {
+              "name": "maxResults",
+              "value": "={{ $json.nb_resultats }}"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.4,
+      "position": [
+        -8592,
+        -1200
+      ],
+      "id": "834d0599-35a9-4cdc-b899-8d2d4e7d5cff",
+      "name": "Collecte des contenus",
+      "credentials": {
+        "httpHeaderAuth": {
+          "id": "ma35vVKoeeQQUhO6",
+          "name": "youtube-api-key"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "// Récupère l'ID de la campagne depuis le nœud amont\nconst campagneId = $('Créer Campagne').first().json.id;\n\n// Récupère la liste des vidéos depuis l'API YouTube\nconst inputData = $input.first().json;\nconst videos = inputData.items || [];\n\n// Transformation propre, lisible et explicite avec .map()\nreturn videos\n  .filter(video => video.id && video.snippet)\n  .map(video => {\n    // On isole l'extraction de l'identifiant pour raconter l'intention métier\n    const contenuSourceId = \n      video.id.videoId ?? \n      video.id.channelId ?? \n      video.id.playlistId ?? \n      null;\n\n    return {\n      json: {\n        campagne_id: campagneId,\n        contenu_source_id: contenuSourceId,\n        titre: video.snippet.title,\n        auteur: video.snippet.channelTitle,\n        description: video.snippet.description,\n        date_publication: video.snippet.publishedAt,\n        plateforme: \"YouTube\"\n      }\n    };\n  });"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -8352,
+        -1200
+      ],
+      "id": "bc23686b-b857-4875-a02b-103f3dd8b706",
+      "name": "Normalisation"
+    },
+    {
+      "parameters": {
+        "operation": "upsert",
+        "schema": {
+          "__rl": true,
+          "value": "public",
+          "mode": "list",
+          "cachedResultName": "public"
+        },
+        "table": {
+          "__rl": true,
+          "value": "contenus",
+          "mode": "list",
+          "cachedResultName": "contenus"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "campagne_id": "={{ $json.campagne_id }}",
+            "contenu_source_id": "={{ $json.contenu_source_id }}",
+            "titre": "={{ $json.titre }}",
+            "auteur": "={{ $json.auteur }}",
+            "description": "={{ $json.description }}",
+            "date_publication": "={{ $json.date_publication }}",
+            "plateforme": "={{ $json.plateforme }}"
+          },
+          "matchingColumns": [
+            "contenu_source_id"
+          ],
+          "schema": [
+            {
+              "id": "id",
+              "displayName": "id",
+              "required": false,
+              "defaultMatch": true,
+              "display": true,
+              "type": "number",
+              "canBeUsedToMatch": true,
+              "removed": true
+            },
+            {
+              "id": "campagne_id",
+              "displayName": "campagne_id",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "number",
+              "canBeUsedToMatch": false
+            },
+            {
+              "id": "contenu_source_id",
+              "displayName": "contenu_source_id",
+              "required": true,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "titre",
+              "displayName": "titre",
+              "required": true,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": false
+            },
+            {
+              "id": "auteur",
+              "displayName": "auteur",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": false
+            },
+            {
+              "id": "description",
+              "displayName": "description",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": false
+            },
+            {
+              "id": "date_publication",
+              "displayName": "date_publication",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "dateTime",
+              "canBeUsedToMatch": false
+            },
+            {
+              "id": "plateforme",
+              "displayName": "plateforme",
+              "required": true,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": false
+            },
+            {
+              "id": "created_at",
+              "displayName": "created_at",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "dateTime",
+              "canBeUsedToMatch": false
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.6,
+      "position": [
+        -7232,
+        -1200
+      ],
+      "id": "7ec9fff2-1301-40b6-9834-5f2aeed14b03",
+      "name": "Persistance des contenus",
+      "credentials": {
+        "postgres": {
+          "id": "9CJdZfap0gHnWIUB",
+          "name": "ia-contenu-prod"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "modelId": {
+          "__rl": true,
+          "value": "claude-opus-5",
+          "mode": "list",
+          "cachedResultName": "claude-opus-5"
+        },
+        "messages": {
+          "values": [
+            {
+              "content": "=Analyse ce contenu de manière experte et renvoie UNIQUEMENT un objet JSON valide (sans markdown autour si possible, ou un bloc JSON pur) respectant exactement cette structure :\n{\n  \"contenu_id\": {{ $json.id }},\n  \"resume\": \"Un court résumé de l'idée principale\",\n  \"theme\": \"Le thème principal\",\n  \"sentiment\": \"Positif, Neutre ou Négatif\",\n  \"score_qualite\": 85,\n  \"mots_cles\": [\"mot1\", \"mot2\"],\n  \"langue\": \"fr\"\n}\n\nVoici les données à analyser :\n- Titre : {{ $json.titre }}\n- Description : {{ $json.description }}\n- Plateforme : {{ $json.plateforme }}"
+            }
+          ]
+        },
+        "options": {
+          "maxTokens": 1000
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.anthropic",
+      "typeVersion": 1,
+      "position": [
+        -7024,
+        -1200
+      ],
+      "id": "d91fae53-2aed-4325-9dc5-af92ce57dbbe",
+      "name": "Analyse IA",
+      "credentials": {
+        "anthropicApi": {
+          "id": "w7OEC4dThiZIPIES",
+          "name": "Anthropic account 2"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "// Récupération des items entrants de l'IA\nconst cleanedItems = [];\n\nfor (const item of $input.all()) {\n  // On vérifie si la structure \"content\" existe\n  if (item.json && item.json.content && Array.isArray(item.json.content)) {\n    // On cherche l'élément de type \"text\" (et on ignore les \"thinking\")\n    const textBlock = item.json.content.find(c => c.type === 'text');\n    \n    if (textBlock && textBlock.text) {\n      let rawText = textBlock.text.trim();\n      \n      // Nettoyage des balises markdown ```json ... ``` si présentes\n      if (rawText.startsWith('```')) {\n        // Supprime la première ligne (ex: ```json)\n        rawText = rawText.replace(/^```[a-z]*\\n?/i, '');\n        // Supprime les backticks de fin\n        rawText = rawText.replace(/```\\s*$/, '');\n        rawText = rawText.trim();\n      }\n      \n      try {\n        // Parse la chaîne de caractères en objet JSON propre\n        const parsedJson = JSON.parse(rawText);\n        cleanedItems.push({ json: parsedJson });\n      } catch (e) {\n        // En cas d'échec du parse, on conserve une trace de l'erreur pour le debug\n        cleanedItems.push({ \n          json: { \n            error: \"Failed to parse JSON\", \n            raw: rawText \n          } \n        });\n      }\n    }\n  }\n}\n\nreturn cleanedItems;"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -6704,
+        -1200
+      ],
+      "id": "610655db-506d-4f15-a06f-dc17c7047754",
+      "name": "Normalisation Analyse IA"
+    },
+    {
+      "parameters": {
+        "operation": "upsert",
+        "schema": {
+          "__rl": true,
+          "value": "public",
+          "mode": "list",
+          "cachedResultName": "public"
+        },
+        "table": {
+          "__rl": true,
+          "value": "analyses",
+          "mode": "list",
+          "cachedResultName": "analyses"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "score_qualite": "={{ $json.score_qualite }}",
+            "contenu_id": "={{ $json.contenu_id }}",
+            "resume": "={{ $json.resume }}",
+            "theme": "={{ $json.theme }}",
+            "sentiment": "={{ $json.sentiment }}",
+            "mots_cles": "={{ $json.mots_cles }}",
+            "langue": "={{ $json.langue }}"
+          },
+          "matchingColumns": [
+            "contenu_id"
+          ],
+          "schema": [
+            {
+              "id": "id",
+              "displayName": "id",
+              "required": false,
+              "defaultMatch": true,
+              "display": true,
+              "type": "number",
+              "canBeUsedToMatch": true,
+              "removed": true
+            },
+            {
+              "id": "contenu_id",
+              "displayName": "contenu_id",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "number",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "resume",
+              "displayName": "resume",
+              "required": true,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": false
+            },
+            {
+              "id": "theme",
+              "displayName": "theme",
+              "required": true,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": false
+            },
+            {
+              "id": "sentiment",
+              "displayName": "sentiment",
+              "required": true,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": false
+            },
+            {
+              "id": "score_qualite",
+              "displayName": "score_qualite",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "number",
+              "canBeUsedToMatch": false
+            },
+            {
+              "id": "mots_cles",
+              "displayName": "mots_cles",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "array",
+              "canBeUsedToMatch": false
+            },
+            {
+              "id": "langue",
+              "displayName": "langue",
+              "required": true,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": false
+            },
+            {
+              "id": "created_at",
+              "displayName": "created_at",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "dateTime",
+              "canBeUsedToMatch": false
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.6,
+      "position": [
+        -6528,
+        -1200
+      ],
+      "id": "08ca53b1-4b53-477b-94de-eb221cb10ebb",
+      "name": "Persistance Analyse",
+      "credentials": {
+        "postgres": {
+          "id": "9CJdZfap0gHnWIUB",
+          "name": "ia-contenu-prod"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "SELECT \n    a.id AS analyse_id,\n    c.id AS contenu_id,\n    c.campagne_id,\n    c.titre,\n    c.auteur,\n    c.description,\n    c.date_publication,\n    c.plateforme,\n    a.resume,\n    a.theme,\n    a.sentiment,\n    a.score_qualite,\n    a.mots_cles,\n    a.langue\nFROM analyses a\nJOIN contenus c ON c.id = a.contenu_id\nWHERE a.id = {{ $('Persistance Analyse').item.json.id }}\nLIMIT 1;",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.6,
+      "position": [
+        -6288,
+        -1200
+      ],
+      "id": "33f6bacb-6c5d-4dc7-9f94-9e31ff2ac67a",
+      "name": "Lecture Analyse et Contenu",
+      "credentials": {
+        "postgres": {
+          "id": "9CJdZfap0gHnWIUB",
+          "name": "ia-contenu-prod"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "modelId": {
+          "__rl": true,
+          "value": "claude-sonnet-5",
+          "mode": "list",
+          "cachedResultName": "claude-sonnet-5"
+        },
+        "messages": {
+          "values": [
+            {
+              "content": "=Tu es un expert en création de scripts vidéo viraux pour TikTok, YouTube Shorts et Reels.\n\nVoici le contenu analysé :\n\n- Titre : {{ $json.titre }}\n- Auteur : {{ $json.auteur }}\n- Plateforme : {{ $json.plateforme }}\n- Résumé : {{ $json.resume }}\n- Thème : {{ $json.theme }}\n- Sentiment : {{ $json.sentiment }}\n- Score qualité : {{ $json.score_qualite }}\n- Mots-clés : {{ $json.mots_cles.join(', ') }}\n\nRédige un script vidéo de moins de 60 secondes avec :\n1. Un hook très fort dès la première phrase.\n2. Une explication simple et dynamique.\n3. Un appel à l’action final.\n\nRetourne uniquement un JSON valide au format :\n\n{\n  \"script\": \"...\"\n}"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.anthropic",
+      "typeVersion": 1,
+      "position": [
+        -6096,
+        -1200
+      ],
+      "id": "fa65a5f1-bc6f-4270-873a-7213dabaeb5e",
+      "name": "Génération Script IA",
+      "credentials": {
+        "anthropicApi": {
+          "id": "w7OEC4dThiZIPIES",
+          "name": "Anthropic account 2"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "const results = [];\n\nfor (let i = 0; i < $input.all().length; i++) {\n  const currentItem = $input.all()[i].json;\n\n  // Récupération des infos liées via l'item correspondant en amont\n  const lecture = $('Lecture Analyse et Contenu').all()[i].json;\n\n  const campagneId = lecture.campagne_id;\n  const contenuId = lecture.contenu_id;\n  const analyseId = lecture.analyse_id;\n\n  // Recherche du bloc texte renvoyé par le LLM\n  let raw = '';\n\n  if (Array.isArray(currentItem.content)) {\n    const textBlock = currentItem.content.find(item => item.type === 'text');\n    if (textBlock) {\n      raw = textBlock.text;\n    }\n  } else if (currentItem.script) {\n    raw = currentItem.script;\n  }\n\n  // Parsing sécurisé\n  let parsed;\n  try {\n    parsed = JSON.parse(raw);\n  } catch (e) {\n    parsed = { script: raw };\n  }\n\n  results.push({\n    json: {\n      campagne_id: campagneId,\n      contenu_id: contenuId,\n      analyse_id: analyseId,\n      script: parsed.script || ''\n    }\n  });\n}\n\nreturn results;"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -5760,
+        -1200
+      ],
+      "id": "e7a0101e-70c6-41b6-a3ab-127eb967bc1c",
+      "name": "Normalisation Script IA"
+    },
+    {
+      "parameters": {
+        "operation": "upsert",
+        "schema": {
+          "__rl": true,
+          "value": "public",
+          "mode": "list",
+          "cachedResultName": "public"
+        },
+        "table": {
+          "__rl": true,
+          "value": "scripts",
+          "mode": "list",
+          "cachedResultName": "scripts"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "analyse_id": "={{ $json.analyse_id }}",
+            "contenu_id": "={{ $json.contenu_id }}",
+            "script": "={{ $json.script }}"
+          },
+          "matchingColumns": [
+            "analyse_id"
+          ],
+          "schema": [
+            {
+              "id": "id",
+              "displayName": "id",
+              "required": false,
+              "defaultMatch": true,
+              "display": true,
+              "type": "number",
+              "canBeUsedToMatch": true,
+              "removed": true
+            },
+            {
+              "id": "analyse_id",
+              "displayName": "analyse_id",
+              "required": true,
+              "defaultMatch": false,
+              "display": true,
+              "type": "number",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "script",
+              "displayName": "script",
+              "required": true,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": false
+            },
+            {
+              "id": "created_at",
+              "displayName": "created_at",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "dateTime",
+              "canBeUsedToMatch": false
+            },
+            {
+              "id": "contenu_id",
+              "displayName": "contenu_id",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "number",
+              "canBeUsedToMatch": false
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.6,
+      "position": [
+        -5584,
+        -1200
+      ],
+      "id": "ef928853-69d2-4de1-bd5a-7732065e453b",
+      "name": "Persistance Script",
+      "credentials": {
+        "postgres": {
+          "id": "9CJdZfap0gHnWIUB",
+          "name": "ia-contenu-prod"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "content": "# 📥 Collecte & Normalisation (C03-C05d)\n\n**Création campagne, collecte YouTube et fixation du total**\n\n- C03 · Créer Campagne (statut = EN_COURS)\n- C04 · Collecte YouTube API\n- C05 · Normalisation des vidéos\n- C05a · Agrégation des items\n- C05b · Calcul nb_total\n- C05c · UPDATE nb_contenus_total *(fixé UNE seule fois)*\n- C05d · Redistribution en items unitaires\n\n🔑 `nb_contenus_total` ne doit JAMAIS être modifié après C05c.",
+        "height": 1184,
+        "width": 1520,
+        "color": "#00FF00"
+      },
       "type": "n8n-nodes-base.stickyNote",
       "typeVersion": 1,
       "position": [
-        0,
-        0
-      ]
+        -8880,
+        -1680
+      ],
+      "id": "bbf13ff8-af98-433f-9d61-0fcfeef46356",
+      "name": "Sticky Note1"
     },
     {
       "parameters": {
-        "httpMethod": "POST",
-        "path": "v2-creer-dossier",
+        "content": "# 🧠 Analyse IA (C06-C09)\n\n**Persistance des contenus et analyse par Claude**\n\n- C06 · Upsert table `contenus`\n- C07 · Analyse IA (Claude Opus)\n- C08 · Parsing JSON de la réponse IA\n- C09 · Upsert table `analyses`\n\n📊 Sortie : resume, theme, sentiment, score_qualite, mots_cles",
+        "height": 1200,
+        "width": 932,
+        "color": "#FFFF00"
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        -7312,
+        -1664
+      ],
+      "id": "19c573f0-40e1-4fc9-90ff-25eaa24bc225",
+      "name": "Sticky Note2"
+    },
+    {
+      "parameters": {
+        "content": "# 🎬 Génération Script (C10-C13)\n\n**Création du script vidéo viral par contenu**\n\n- C10 · Lecture analyse + contenu (JOIN SQL)\n- C11 · Génération script (Claude Sonnet)\n- C12 · Parsing JSON *(boucle sur TOUS les items)*\n- C13 · Upsert table `scripts`\n\n⚠️ C12 doit boucler sur `$input.all()` — ne pas régresser.",
+        "height": 1200,
+        "width": 852,
+        "color": "#FF00FF"
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        -6336,
+        -1664
+      ],
+      "id": "1d6c22f8-82dc-4abc-a197-e07d097637e2",
+      "name": "Sticky Note3"
+    },
+    {
+      "parameters": {
+        "aggregate": "aggregateAllItemData",
         "options": {}
       },
-      "id": "226eaa83-db9c-4e54-9e12-544d52305d66",
-      "name": "C-V2-01 · Recevoir Demande V2",
-      "type": "n8n-nodes-base.webhook",
+      "type": "n8n-nodes-base.aggregate",
+      "typeVersion": 1,
+      "position": [
+        -8112,
+        -1200
+      ],
+      "id": "c5ff2d06-786c-4474-9c30-06553740651d",
+      "name": "Aggregate Contenus"
+    },
+    {
+      "parameters": {
+        "jsCode": "const aggregated = $input.first().json;\n\n// Le tableau complet des contenus est maintenant dans \"data\"\nconst contenus = aggregated.data;\n\n// On récupère l'id campagne depuis le premier contenu\nconst campagneId = contenus[0].campagne_id;\n\nreturn [{\n  json: {\n    campagne_id: campagneId,\n    nb_total: contenus.length,\n    contenus: contenus\n  }\n}];"
+      },
+      "type": "n8n-nodes-base.code",
       "typeVersion": 2,
       "position": [
-        112,
-        192
+        -7904,
+        -1200
       ],
-      "webhookId": "v2-creer-dossier-webhook-id",
-      "notes": "Payload attendu: { script_id: number, outil_image_id: number, outil_animation_id: number }"
+      "id": "fa69e887-c3dd-4898-8371-938155178c17",
+      "name": "Préparer Total Campagne"
     },
     {
       "parameters": {
         "operation": "executeQuery",
-        "query": "SELECT\n  s.id AS script_id,\n  s.script AS script_texte,\n  s.contenu_id,\n  co.id AS contenu_id_verif,\n  co.titre AS contenu_titre,\n  co.plateforme AS contenu_plateforme,\n  ca.id AS campagne_id,\n  ca.sujet AS campagne_sujet,\n  ca.statut AS campagne_statut\nFROM scripts s\nJOIN contenus co ON co.id = s.contenu_id\nJOIN campagnes ca ON ca.id = co.campagne_id\nWHERE s.id = {{ $('C-V2-01 · Recevoir Demande V2').item.json.body.script_id }}\n  AND ca.statut = 'TERMINEE';",
+        "query": "UPDATE campagnes\nSET nb_contenus_total = {{ $json.nb_total }}\nWHERE id = {{ Number($json.campagne_id) }};",
         "options": {}
       },
-      "id": "f02de6bb-c279-48b2-b642-995b3d417ada",
-      "name": "C-V2-03 · Lire Contexte V1",
       "type": "n8n-nodes-base.postgres",
-      "typeVersion": 2.4,
+      "typeVersion": 2.6,
       "position": [
-        624,
-        112
+        -7696,
+        -1200
       ],
-      "credentials": {
-        "postgres": {
-          "id": "9CJdZfap0gHnWIUB",
-          "name": "ia-contenu-prod"
-        }
-      },
-      "notes": "ADR-V2-03 Révisé: 2 JOINs (scripts→contenus→campagnes). Vérifié 100% identique au chemin via analyses."
-    },
-    {
-      "parameters": {
-        "operation": "executeQuery",
-        "query": "SELECT\n  COUNT(*) FILTER (\n    WHERE id = {{ $('C-V2-01 · Recevoir Demande V2').item.json.body.outil_image_id }}\n      AND categorie = 'image'\n  ) AS nb_image_valide,\n  COUNT(*) FILTER (\n    WHERE id = {{ $('C-V2-01 · Recevoir Demande V2').item.json.body.outil_animation_id }}\n      AND categorie = 'animation'\n  ) AS nb_animation_valide,\n  STRING_AGG(nom || ' (' || categorie || ')', ', ') AS outils_trouves\nFROM v2_outils\nWHERE id IN (\n  {{ $('C-V2-01 · Recevoir Demande V2').item.json.body.outil_image_id }},\n  {{ $('C-V2-01 · Recevoir Demande V2').item.json.body.outil_animation_id }}\n)\n  AND actif = true;",
-        "options": {}
-      },
-      "id": "9419ed3f-79cb-4795-bb17-dab5b7c1cae8",
-      "name": "C-V2-04 · Vérifier Outils V2",
-      "type": "n8n-nodes-base.postgres",
-      "typeVersion": 2.4,
-      "position": [
-        1120,
-        96
-      ],
-      "credentials": {
-        "postgres": {
-          "id": "9CJdZfap0gHnWIUB",
-          "name": "ia-contenu-prod"
-        }
-      },
-      "notes": "Doit retourner 2 lignes (1 image + 1 animation). Si 0 ou 1 → outils inactifs ou mauvais IDs."
-    },
-    {
-      "parameters": {
-        "operation": "executeQuery",
-        "query": "INSERT INTO v2_dossiers_production (\n  script_id,\n  campagne_id,\n  outil_image_id,\n  outil_animation_id,\n  execution_id,\n  statut,\n  nb_plans_total,\n  nb_plans_traites\n) VALUES (\n  {{ $('C-V2-01 · Recevoir Demande V2').item.json.body.script_id }},\n  {{ $('C-V2-03 · Lire Contexte V1').item.json.campagne_id }},\n  {{ $('C-V2-01 · Recevoir Demande V2').item.json.body.outil_image_id }},\n  {{ $('C-V2-01 · Recevoir Demande V2').item.json.body.outil_animation_id }},\n  gen_random_uuid()::text,\n  'EN_COURS',\n  0,\n  0\n) RETURNING id, execution_id, script_id, campagne_id, statut;",
-        "options": {}
-      },
-      "id": "4052e53e-433b-4599-81bc-a797d01101f6",
-      "name": "C-V2-05 · Créer Dossier V2",
-      "type": "n8n-nodes-base.postgres",
-      "typeVersion": 2.4,
-      "position": [
-        1536,
-        0
-      ],
+      "id": "3fcc0950-00b6-4997-8a12-0c12718c2995",
+      "name": "Update Total Campagne",
       "credentials": {
         "postgres": {
           "id": "9CJdZfap0gHnWIUB",
@@ -101,18 +841,33 @@
     },
     {
       "parameters": {
-        "operation": "executeQuery",
-        "query": "INSERT INTO v2_checklists (dossier_id)\nVALUES ({{ $('C-V2-05 · Créer Dossier V2').item.json.id }})\nRETURNING id, dossier_id;",
-        "options": {}
+        "jsCode": "const data = $('Préparer Total Campagne').first().json;\nconst contenus = data.contenus || [];\n\nreturn contenus.map(contenu => ({\n  json: contenu\n}));"
       },
-      "id": "d93d5a12-5650-4aca-9181-2b8af73f920f",
-      "name": "C-V2-05b · Créer Checklist (1/2)",
-      "type": "n8n-nodes-base.postgres",
-      "typeVersion": 2.4,
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
       "position": [
-        1712,
-        0
+        -7504,
+        -1200
       ],
+      "id": "8526199c-0def-428d-ad90-f279e29b12aa",
+      "name": "Redistribuer Contenus"
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "UPDATE campagnes\nSET\n  nb_contenus_traites = nb_contenus_traites + 1,\n  statut = CASE\n    WHEN nb_contenus_traites + 1 >= nb_contenus_total THEN 'TERMINEE'\n    ELSE statut\n  END,\n  date_fin = CASE\n    WHEN nb_contenus_traites + 1 >= nb_contenus_total THEN NOW()\n    ELSE date_fin\n  END\nWHERE id = $1;",
+        "options": {
+          "queryReplacement": "={{ $json.campagne_id }}"
+        }
+      },
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.6,
+      "position": [
+        -5136,
+        -1200
+      ],
+      "id": "356e4275-93f0-46fc-a1a1-b774cf53d66e",
+      "name": "Increment Traites",
       "credentials": {
         "postgres": {
           "id": "9CJdZfap0gHnWIUB",
@@ -122,243 +877,264 @@
     },
     {
       "parameters": {
-        "operation": "executeQuery",
-        "query": "WITH insertions AS (\n  INSERT INTO v2_etapes_checklist (checklist_id, libelle, ordre_affichage, est_realisee)\n  VALUES\n    ({{ $('C-V2-05b · Créer Checklist (1/2)').item.json.id }}, 'Scènes générées', 1, false),\n    ({{ $('C-V2-05b · Créer Checklist (1/2)').item.json.id }}, 'Plans découpés', 2, false),\n    ({{ $('C-V2-05b · Créer Checklist (1/2)').item.json.id }}, 'Images générées', 3, false),\n    ({{ $('C-V2-05b · Créer Checklist (1/2)').item.json.id }}, 'Images validées', 4, false),\n    ({{ $('C-V2-05b · Créer Checklist (1/2)').item.json.id }}, 'Animations générées', 5, false),\n    ({{ $('C-V2-05b · Créer Checklist (1/2)').item.json.id }}, 'Animations validées', 6, false),\n    ({{ $('C-V2-05b · Créer Checklist (1/2)').item.json.id }}, 'Voix off générée', 7, false),\n    ({{ $('C-V2-05b · Créer Checklist (1/2)').item.json.id }}, 'Montage assemblé', 8, false),\n    ({{ $('C-V2-05b · Créer Checklist (1/2)').item.json.id }}, 'Publication préparée', 9, false)\n  RETURNING id, checklist_id\n)\nSELECT\n  {{ $('C-V2-05b · Créer Checklist (1/2)').item.json.id }} AS checklist_id,\n  COUNT(*)::integer AS nb_etapes_creees,\n  {{ $('C-V2-05 · Créer Dossier V2').item.json.id }} AS dossier_id\nFROM insertions;",
-        "options": {}
+        "jsCode": "const results = [];\n\nfor (let i = 0; i < $input.all().length; i++) {\n  const scriptPersiste = $input.all()[i].json;\n  const normScript = $('Normalisation Script IA').all()[i].json;\n\n  results.push({\n    json: {\n      script_id: scriptPersiste.id,\n      campagne_id: normScript.campagne_id,\n      contenu_id: normScript.contenu_id,\n      analyse_id: normScript.analyse_id\n    }\n  });\n}\n\nreturn results;"
       },
-      "id": "3fdbc972-f74b-4ca6-b574-df0c6588f5dd",
-      "name": "C-V2-05b · Créer Checklist (2/2)",
-      "type": "n8n-nodes-base.postgres",
-      "typeVersion": 2.4,
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
       "position": [
-        1856,
-        0
+        -5376,
+        -1200
       ],
-      "credentials": {
-        "postgres": {
-          "id": "9CJdZfap0gHnWIUB",
-          "name": "ia-contenu-prod"
-        }
-      },
-      "notes": "9 lignes obligatoires. Vérif test: SELECT count(*) FROM v2_etapes_checklist WHERE checklist_id = $1"
+      "id": "afd25055-784e-42f3-ab02-7e78f12ffb6a",
+      "name": "Préparer Increment"
     },
     {
       "parameters": {
-        "conditions": {
-          "options": {
-            "caseSensitive": true,
-            "leftValue": "",
-            "typeValidation": "strict",
-            "version": 3
-          },
-          "conditions": [
-            {
-              "id": "24d66fc4-17c3-4835-a5e4-02d3c3d8e0e3",
-              "leftValue": "={{ $json.body.script_id }}",
-              "rightValue": "",
-              "operator": {
-                "type": "number",
-                "operation": "notEmpty",
-                "singleValue": true
-              }
-            },
-            {
-              "id": "becc3d87-f58a-4719-8661-33904e6996f5",
-              "leftValue": "={{ $json.body.outil_image_id }}",
-              "rightValue": "",
-              "operator": {
-                "type": "number",
-                "operation": "notEmpty",
-                "singleValue": true
-              }
-            },
-            {
-              "id": "879a01c6-0ef5-40cc-943d-d414a38d3a80",
-              "leftValue": "={{ $json.body.outil_animation_id }}",
-              "rightValue": "",
-              "operator": {
-                "type": "number",
-                "operation": "notEmpty",
-                "singleValue": true
-              }
-            }
-          ],
-          "combinator": "and"
-        },
-        "options": {}
+        "content": "# 🚀 Initialisation (C01-C02)\n\n**Réception et validation de la demande**\n\n- C01 · Webhook `POST /lancer-campagne`\n- C02 · Validation : sujet, plateforme, langue, nb_resultats > 0\n\n⚠️ Toute requête invalide est rejetée ici.",
+        "height": 1184,
+        "width": 640,
+        "color": "#0000FF"
       },
-      "type": "n8n-nodes-base.if",
-      "typeVersion": 2.3,
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
       "position": [
-        400,
-        192
+        -9568,
+        -1680
       ],
-      "id": "d23032ea-b254-4128-adbe-8cf4ab32f4c8",
-      "name": "C-V2-02 · Valider Paramètres V2"
+      "id": "d9b4873b-cf42-4564-a3bf-3c48078a04e6",
+      "name": "Sticky Note"
     },
     {
       "parameters": {
-        "conditions": {
-          "options": {
-            "caseSensitive": true,
-            "leftValue": "",
-            "typeValidation": "strict",
-            "version": 3
-          },
-          "conditions": [
-            {
-              "id": "de946b9a-78a6-4caf-a89f-dddf57d0e480",
-              "leftValue": "={{ $json.campagne_id }}",
-              "rightValue": "",
-              "operator": {
-                "type": "string",
-                "operation": "notEmpty",
-                "singleValue": true
-              }
-            }
-          ],
-          "combinator": "and"
-        },
-        "options": {}
+        "content": "# 🏁 Suivi & Clôture (C14-C15)\n\n**Comptage des traités et fin de campagne**\n\n- C14 · Préparer Increment *(transporte campagne_id, boucle sur tous les items)*\n- C15 · UPDATE nb_contenus_traites + 1\n  → statut = TERMINEE quand traités >= total (décision en SQL)\n\n🔑 La base de données décide de la fin, pas n8n.",
+        "height": 1200,
+        "width": 464,
+        "color": "#808080"
       },
-      "type": "n8n-nodes-base.if",
-      "typeVersion": 2.3,
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
       "position": [
-        864,
-        112
+        -5456,
+        -1664
       ],
-      "id": "85fd01ad-bddb-49ca-841d-00365da0c460",
-      "name": "IF · Contexte V1 Trouvé ?"
+      "id": "fc3c63ea-8a49-49bd-bc47-071b6b3a5a4c",
+      "name": "Sticky Note4"
     },
     {
       "parameters": {
-        "conditions": {
-          "options": {
-            "caseSensitive": true,
-            "leftValue": "",
-            "typeValidation": "strict",
-            "version": 3
-          },
-          "conditions": [
-            {
-              "id": "25c2669a-4309-4e21-9c12-09ef50b93c3a",
-              "leftValue": "={{ $json.nb_image_valide }}",
-              "rightValue": "1",
-              "operator": {
-                "type": "string",
-                "operation": "equals",
-                "name": "filter.operator.equals"
-              }
-            },
-            {
-              "id": "79010314-cc1c-48dc-9094-583f1f121dd3",
-              "leftValue": "={{ $json.nb_animation_valide }}",
-              "rightValue": "1",
-              "operator": {
-                "type": "string",
-                "operation": "equals",
-                "name": "filter.operator.equals"
-              }
-            }
-          ],
-          "combinator": "and"
-        },
-        "options": {}
+        "content": "### 📡 Système de Veille de Contenus Viraux — V1 STABLE\n\n**Pipeline** : Webhook → Collecte YouTube → Analyse IA → Scripts viraux → Clôture\n\n- 🗄️ Base : Supabase (campagnes, contenus, analyses, scripts, journal_execution)\n- 🤖 IA : Claude Opus (analyse) + Claude Sonnet (scripts)\n- ⚠️ Workflow d'erreur séparé : capture + log + statut ERREUR\n- 📅 Validé le : 03/08 — Tests 1, 4 et 10 contenus ✅",
+        "height": 1696,
+        "width": 560
       },
-      "type": "n8n-nodes-base.if",
-      "typeVersion": 2.3,
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
       "position": [
-        1312,
-        96
+        -10208,
+        -2048
       ],
-      "id": "f9cc31ae-9b39-4393-8b3f-9a500ea30cf9",
-      "name": "IF · Outils Valides ?"
+      "id": "a2aa34bb-d625-4fd2-8bcf-b59572883111",
+      "name": "Sticky Note5"
     }
   ],
   "pinData": {},
   "connections": {
-    "C-V2-01 · Recevoir Demande V2": {
+    "Recevoir Demande Campagne": {
       "main": [
         [
           {
-            "node": "C-V2-02 · Valider Paramètres V2",
+            "node": "Valider Paramètres",
             "type": "main",
             "index": 0
           }
         ]
       ]
     },
-    "C-V2-03 · Lire Contexte V1": {
+    "Valider Paramètres": {
       "main": [
         [
           {
-            "node": "IF · Contexte V1 Trouvé ?",
+            "node": "Créer Campagne",
             "type": "main",
             "index": 0
           }
         ]
       ]
     },
-    "C-V2-04 · Vérifier Outils V2": {
+    "Créer Campagne": {
       "main": [
         [
           {
-            "node": "IF · Outils Valides ?",
+            "node": "Collecte des contenus",
             "type": "main",
             "index": 0
           }
         ]
       ]
     },
-    "C-V2-05 · Créer Dossier V2": {
+    "Collecte des contenus": {
       "main": [
         [
           {
-            "node": "C-V2-05b · Créer Checklist (1/2)",
+            "node": "Normalisation",
             "type": "main",
             "index": 0
           }
         ]
       ]
     },
-    "C-V2-05b · Créer Checklist (1/2)": {
+    "Normalisation": {
       "main": [
         [
           {
-            "node": "C-V2-05b · Créer Checklist (2/2)",
+            "node": "Aggregate Contenus",
             "type": "main",
             "index": 0
           }
         ]
       ]
     },
-    "C-V2-02 · Valider Paramètres V2": {
+    "Persistance des contenus": {
       "main": [
         [
           {
-            "node": "C-V2-03 · Lire Contexte V1",
+            "node": "Analyse IA",
             "type": "main",
             "index": 0
           }
         ]
       ]
     },
-    "IF · Contexte V1 Trouvé ?": {
+    "Analyse IA": {
       "main": [
         [
           {
-            "node": "C-V2-04 · Vérifier Outils V2",
+            "node": "Normalisation Analyse IA",
             "type": "main",
             "index": 0
           }
         ]
       ]
     },
-    "IF · Outils Valides ?": {
+    "Normalisation Analyse IA": {
       "main": [
         [
           {
-            "node": "C-V2-05 · Créer Dossier V2",
+            "node": "Persistance Analyse",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Persistance Analyse": {
+      "main": [
+        [
+          {
+            "node": "Lecture Analyse et Contenu",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Lecture Analyse et Contenu": {
+      "main": [
+        [
+          {
+            "node": "Génération Script IA",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Génération Script IA": {
+      "main": [
+        [
+          {
+            "node": "Normalisation Script IA",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Normalisation Script IA": {
+      "main": [
+        [
+          {
+            "node": "Persistance Script",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Persistance Script": {
+      "main": [
+        [
+          {
+            "node": "Préparer Increment",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Aggregate Contenus": {
+      "main": [
+        [
+          {
+            "node": "Préparer Total Campagne",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Préparer Total Campagne": {
+      "main": [
+        [
+          {
+            "node": "Update Total Campagne",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Update Total Campagne": {
+      "main": [
+        [
+          {
+            "node": "Redistribuer Contenus",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Redistribuer Contenus": {
+      "main": [
+        [
+          {
+            "node": "Persistance des contenus",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Increment Traites": {
+      "main": [
+        []
+      ]
+    },
+    "Préparer Increment": {
+      "main": [
+        [
+          {
+            "node": "Increment Traites",
             "type": "main",
             "index": 0
           }
@@ -366,19 +1142,20 @@
       ]
     }
   },
-  "active": false,
+  "active": true,
   "settings": {
     "executionOrder": "v1",
     "binaryMode": "separate",
     "timeSavedMode": "fixed",
-    "errorWorkflow": "GeGB8DSmC0Bmsj7s",
+    "errorWorkflow": "MPV8dEdAPPoUcuCV",
     "callerPolicy": "workflowsFromSameOwner",
     "availableInMCP": false
   },
-  "versionId": "1e558b7f-6b22-4a7e-a74a-adbf90aba8b4",
+  "versionId": "712f29b8-a96a-4ada-8e26-45325e6a17fe",
   "meta": {
+    "templateCredsSetupCompleted": true,
     "instanceId": "09a4271ff440e2d4ed1d23d70521c8ceadc5f0cf389b7a9fad7d7fcb78f3bb2c"
   },
-  "id": "A2AmECQZN9PsK0Ky",
+  "id": "8oPlIMKJ4E7IgmT4",
   "tags": []
 }
