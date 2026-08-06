@@ -1,0 +1,169 @@
+{
+    "name": "V2-ERR — Gestionnaire d'Erreurs V2",
+    "nodes": [
+        {
+            "parameters": {},
+            "type": "n8n-nodes-base.errorTrigger",
+            "typeVersion": 1,
+            "position": [
+                -1920,
+                -1024
+            ],
+            "id": "e1a1a1a1-0001-4000-8000-000000000001",
+            "name": "E-V2-01 · Capturer Erreur V2"
+        },
+        {
+            "parameters": {
+                "jsCode": "// E-V2-02 · Structurer Erreur V2\n// Source : 05.V2_Implementation_Technique.md — section 9\n\nconst exec  = $json.execution || {};\nconst error = exec.error || {};\n\nreturn [{\n  json: {\n    execution_id : exec.id || null,\n    niveau       : 'ERREUR',\n    etape        : error.node?.name\n                   || exec.lastNodeExecuted\n                   || 'INCONNU',\n    message      : error.description\n                   || error.message\n                   || (error.messages\n                       ? error.messages.join(' | ')\n                       : null)\n                   || 'Erreur inconnue'\n  }\n}];"
+            },
+            "type": "n8n-nodes-base.code",
+            "typeVersion": 2,
+            "position": [
+                -1680,
+                -1024
+            ],
+            "id": "e2a2a2a2-0002-4000-8000-000000000002",
+            "name": "E-V2-02 · Structurer Erreur V2"
+        },
+        {
+            "parameters": {
+                "operation": "executeQuery",
+                "query": "INSERT INTO v2_journal_execution (\n  dossier_id,\n  niveau,\n  etape,\n  message\n)\nSELECT\n  id,\n  '{{ $json.niveau }}',\n  '{{ $json.etape }}',\n  '{{ $json.message }}'\nFROM v2_dossiers_production\nWHERE execution_id = '{{ $json.execution_id }}'\nLIMIT 1;",
+                "options": {}
+            },
+            "type": "n8n-nodes-base.postgres",
+            "typeVersion": 2.6,
+            "position": [
+                -1440,
+                -1024
+            ],
+            "id": "e3a3a3a3-0003-4000-8000-000000000003",
+            "name": "E-V2-03 · Journaliser Erreur V2",
+            "credentials": {
+                "postgres": {
+                    "id": "9CJdZfap0gHnWIUB",
+                    "name": "ia-contenu-prod"
+                }
+            }
+        },
+        {
+            "parameters": {
+                "operation": "executeQuery",
+                "query": "UPDATE v2_plans\nSET statut = 'ERREUR'\nWHERE id = (\n  SELECT p.id\n  FROM v2_plans p\n  JOIN v2_scenes s ON s.id = p.scene_id\n  JOIN v2_dossiers_production d ON d.id = s.dossier_id\n  WHERE d.execution_id = '{{ $('E-V2-02 · Structurer Erreur V2').item.json.execution_id }}'\n    AND p.statut = 'EN_ATTENTE'\n  ORDER BY p.id DESC\n  LIMIT 1\n);",
+                "options": {}
+            },
+            "type": "n8n-nodes-base.postgres",
+            "typeVersion": 2.6,
+            "position": [
+                -1200,
+                -1024
+            ],
+            "id": "e4a4a4a4-0004-4000-8000-000000000004",
+            "name": "E-V2-04 · Marquer Plan En Erreur",
+            "credentials": {
+                "postgres": {
+                    "id": "9CJdZfap0gHnWIUB",
+                    "name": "ia-contenu-prod"
+                }
+            }
+        },
+        {
+            "parameters": {
+                "operation": "executeQuery",
+                "query": "UPDATE v2_dossiers_production\nSET\n  nb_plans_traites = nb_plans_traites + 1,\n  statut = CASE\n    WHEN nb_plans_traites + 1 >= nb_plans_total THEN 'TERMINE'\n    ELSE statut\n  END,\n  updated_at = NOW()\nWHERE execution_id = '{{ $('E-V2-02 · Structurer Erreur V2').item.json.execution_id }}'\nRETURNING id, nb_plans_traites, nb_plans_total, statut;",
+                "options": {}
+            },
+            "type": "n8n-nodes-base.postgres",
+            "typeVersion": 2.6,
+            "position": [
+                -960,
+                -1024
+            ],
+            "id": "e5a5a5a5-0005-4000-8000-000000000005",
+            "name": "E-V2-05 · Incrémenter Plans Traités",
+            "credentials": {
+                "postgres": {
+                    "id": "9CJdZfap0gHnWIUB",
+                    "name": "ia-contenu-prod"
+                }
+            }
+        },
+        {
+            "parameters": {
+                "content": "# 🚨 V2-ERR — Gestionnaire d'Erreurs V2\n\n**Résilience isolée par plan**\n\nCe workflow est déclenché automatiquement par n8n dès qu'une erreur survient dans un des 6 workflows V2 (à condition qu'il soit rattaché comme *errorWorkflow*).\n\n### Séquence\n\n- **E-V2-01** · Capturer Erreur V2 *(Error Trigger)*\n- **E-V2-02** · Structurer les informations utiles *(exec.id, nœud, message)*\n- **E-V2-03** · Journaliser dans `v2_journal_execution`\n- **E-V2-04** · Marquer le plan concerné en statut ERREUR\n- **E-V2-05** · Incrémenter `nb_plans_traites` → permet la clôture du dossier\n\n🔑 Principe clé : **une erreur ne bloque pas les autres plans**. Le dossier finit toujours par se clôturer, même si certains plans sont en ERREUR.\n\n📎 Source doc : `05.V2_Implementation_Technique.md` section 9.",
+                "height": 720,
+                "width": 1280,
+                "color": 2
+            },
+            "type": "n8n-nodes-base.stickyNote",
+            "typeVersion": 1,
+            "position": [
+                -2000,
+                -1520
+            ],
+            "id": "aaaaaaaa-0000-4000-8000-000000000000",
+            "name": "Sticky Note V2-ERR"
+        }
+    ],
+    "pinData": {},
+    "connections": {
+        "E-V2-01 · Capturer Erreur V2": {
+            "main": [
+                [
+                    {
+                        "node": "E-V2-02 · Structurer Erreur V2",
+                        "type": "main",
+                        "index": 0
+                    }
+                ]
+            ]
+        },
+        "E-V2-02 · Structurer Erreur V2": {
+            "main": [
+                [
+                    {
+                        "node": "E-V2-03 · Journaliser Erreur V2",
+                        "type": "main",
+                        "index": 0
+                    }
+                ]
+            ]
+        },
+        "E-V2-03 · Journaliser Erreur V2": {
+            "main": [
+                [
+                    {
+                        "node": "E-V2-04 · Marquer Plan En Erreur",
+                        "type": "main",
+                        "index": 0
+                    }
+                ]
+            ]
+        },
+        "E-V2-04 · Marquer Plan En Erreur": {
+            "main": [
+                [
+                    {
+                        "node": "E-V2-05 · Incrémenter Plans Traités",
+                        "type": "main",
+                        "index": 0
+                    }
+                ]
+            ]
+        },
+        "E-V2-05 · Incrémenter Plans Traités": {
+            "main": [
+                []
+            ]
+        }
+    },
+    "active": false,
+    "settings": {
+        "executionOrder": "v1"
+    },
+    "versionId": "",
+    "meta": {
+        "templateCredsSetupCompleted": true
+    },
+    "tags": []
+}
