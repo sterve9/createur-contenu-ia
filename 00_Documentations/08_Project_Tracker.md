@@ -21,10 +21,10 @@ Il pilote uniquement l'avancement du projet.
 ## 📌 État du projet
 
 - **Projet** : Assistant IA pour Créateurs de Contenu
-- **Version courante** : **V2 — Conception 100 % terminée. Passage au développement**
-- **Statut global** : 🟢 V1 STABLE verrouillée. **Toute la conception V2 est formalisée : besoin, architecture métier, modélisation des données, schéma physique, mapping, contrats, workflows, composants, catalogue, implémentation technique et plan de tests.** Prêt pour l'implémentation dans n8n et Supabase.
+- **Version courante** : **V2 — Développement en cours (~35 %)**
+- **Statut global** : 🟢 V1 STABLE verrouillée. Conception V2 100 % terminée. **Développement V2 en cours : fondations posées (DDL Supabase appliqué, catalogue outils peuplé, credentials configurés, workflow V2-ERR opérationnel dans n8n et publié sur GitHub). Reste à créer les 6 workflows métier (V2-ORCH, V2-SCENE, V2-PLAN, V2-IMG, V2-ANIM, V2-PUB), les rattacher à V2-ERR, puis effectuer le smoke test TE2E-01.**
 - **Phase actuelle** : Développement de la V2 (implémentation n8n + Supabase)
-- **Dernière mise à jour** : 12 novembre 2025
+- **Dernière mise à jour** : 06 août 2026
 
 ---
 
@@ -33,22 +33,22 @@ Il pilote uniquement l'avancement du projet.
 - **ID** : `V2-DEV`
 - **Titre** : Développement V2 — implémenter la V2 dans n8n et Supabase en suivant strictement les documents de conception
 - **Priorité** : P0
-- **Statut** : ⬜ À démarrer
+- **Statut** : 🟡 En cours (~35 %)
 
 **Livrables attendus** :
-1. Exécuter le DDL V2 dans Supabase (`02.3.V2_Schema_Physique_des_Donnees.md`).
-2. Peupler la table `v2_outils` avec les 8 outils du catalogue (`05.V2_Implementation_Technique.md`, section 2.4).
-3. Créer les 7 workflows V2 dans n8n selon `05.V2_Implementation_Technique.md` :
-   - V2-ORCH (Orchestrateur)
-   - V2-SCENE (Générateur de Scènes)
-   - V2-PLAN (Générateur de Plans)
-   - V2-IMG (Générateur de Prompts Image)
-   - V2-ANIM (Générateur de Prompts Animation)
-   - V2-PUB (Générateur de Descriptions)
-   - V2-ERR (Gestionnaire d'Erreurs V2)
-4. Configurer les credentials (Anthropic API, Supabase PostgreSQL).
-5. Configurer le workflow V2-ERR comme workflow d'erreur des autres workflows V2.
-6. Effectuer un smoke test avec le scénario TE2E-01 du plan de tests.
+1. ✅ **Exécuter le DDL V2 dans Supabase** (`02.3.V2_Schema_Physique_des_Donnees.md`) — *Fait*
+2. ✅ **Peupler la table `v2_outils`** avec les 8 outils du catalogue (`05.V2_Implementation_Technique.md`, section 2.4) — *Fait*
+3. 🟡 **Créer les 7 workflows V2 dans n8n** selon `05.V2_Implementation_Technique.md` :
+   - ⬜ V2-ORCH (Orchestrateur)
+   - ⬜ V2-SCENE (Générateur de Scènes)
+   - ⬜ V2-PLAN (Générateur de Plans)
+   - ⬜ V2-IMG (Générateur de Prompts Image)
+   - ⬜ V2-ANIM (Générateur de Prompts Animation)
+   - ⬜ V2-PUB (Générateur de Descriptions)
+   - ✅ V2-ERR (Gestionnaire d'Erreurs V2) — *Créé, importé, activé (Published), exporté en JSON et pushé sur GitHub*
+4. ✅ **Configurer les credentials** (Anthropic API, Supabase PostgreSQL) — *Fait*
+5. ⏳ **Configurer le workflow V2-ERR comme workflow d'erreur des autres workflows V2** — *En attente (dépend de la création des 6 workflows métier)*
+6. ⬜ **Effectuer un smoke test** avec le scénario TE2E-01 du plan de tests
 
 ---
 
@@ -120,7 +120,7 @@ La V1 STABLE est **livrée, testée et documentée**. Aucune modification de la 
 - Générer un script vidéo <60s (Claude Sonnet) pour chaque contenu ;
 - Historiser l'ensemble (contenus, analyses, scripts) sans doublon ;
 - Détecter automatiquement la fin normale d'une campagne (`TERMINEE`) ;
-- Basculer automatiquement en `ERREUR` et journaliser tout incident ;
+- Bascüler automatiquement en `ERREUR` et journaliser tout incident ;
 - Tracer la chaîne complète `campagne_id → contenu_id → analyse_id → script_id`.
 
 ---
@@ -219,22 +219,42 @@ Accessible depuis un **tableau de bord personnel**.
 
 **🎉 Conception V2 : 12 documents produits, 100 % complets.**
 
+### Implémentation V2
+
+| Artefact | Statut |
+|----------|--------|
+| DDL V2 appliqué dans Supabase | ✅ Fait |
+| Catalogue `v2_outils` peuplé (8 outils) | ✅ Fait |
+| Workflow V2-ERR (Gestionnaire d'Erreurs) | ✅ Créé, importé, activé (Published), pushé sur GitHub |
+| Workflow V2-ORCH (Orchestrateur) | ⬜ À faire |
+| Workflow V2-SCENE (Générateur de Scènes) | ⬜ À faire |
+| Workflow V2-PLAN (Générateur de Plans) | ⬜ À faire |
+| Workflow V2-IMG (Générateur de Prompts Image) | ⬜ À faire |
+| Workflow V2-ANIM (Générateur de Prompts Animation) | ⬜ À faire |
+| Workflow V2-PUB (Générateur de Descriptions) | ⬜ À faire |
+| Credentials n8n (Anthropic API + Supabase PostgreSQL) | ✅ Fait |
+| Rattachement V2-ERR aux autres workflows V2 | ⏳ En attente |
+| Smoke test TE2E-01 | ⬜ À faire |
+
 ---
 
 ## ➜ Prochaine tâche
 
-**V2-DEV — Développement V2**
+**V2-DEV — Développement V2 (en cours, ~35 %)**
 
-Implémenter la V2 dans n8n et Supabase en suivant strictement
-les documents de conception :
+Poursuivre l'implémentation des 6 workflows métier restants en suivant strictement `05.V2_Implementation_Technique.md` :
 
-1. Exécuter le DDL V2 dans Supabase.
-2. Peupler le catalogue `v2_outils`.
-3. Créer les 7 workflows V2 dans n8n.
-4. Configurer les credentials.
-5. Effectuer un smoke test (scénario TE2E-01).
+1. Créer **V2-ORCH** (orchestrateur principal — chef d'orchestre des autres workflows).
+2. Créer **V2-SCENE** (génération du découpage en scènes).
+3. Créer **V2-PLAN** (génération des plans par scène, avec barrière de phase C-V2-11b).
+4. Créer **V2-IMG** (génération des prompts image, 1 par plan).
+5. Créer **V2-ANIM** (génération des prompts animation, 1 par plan, après l'image).
+6. Créer **V2-PUB** (génération des descriptions + hashtags par plateforme).
+7. Rattacher V2-ERR comme `errorWorkflow` de chacun des 6 workflows ci-dessus.
+8. Exporter chaque workflow en JSON dans `workflows/V2/` et les pusher sur GitHub.
+9. Lancer le smoke test **TE2E-01** du plan de tests.
 
-Après implémentation : exécuter les 31 tests du plan de tests V2.
+Après implémentation complète : exécuter les 31 tests du plan de tests V2.
 
 ---
 
@@ -285,7 +305,7 @@ Après implémentation : exécuter les 31 tests du plan de tests V2.
 | Implémentation technique V2 | ✅ |
 | Plan de tests V2 | ✅ |
 | **🎉 Conception V2 — 100 % terminée** | ✅ |
-| **Développement V2** | 🟡 En cours |
+| **Développement V2** | 🟡 En cours (~35 %) |
 | Tests & validation V2 | ⬜ |
 | Déploiement V2 | ⬜ |
 
@@ -311,6 +331,9 @@ Après implémentation : exécuter les 31 tests du plan de tests V2.
 | 2025-11-12 | ⚙️ **Implémentation technique V2 formalisée** | `05.V2_Implementation_Technique.md` + correctifs `02.3.V2` — 23 nœuds SQL/n8n prêts à implémenter |
 | 2025-11-12 | 🧪 **Plan de tests V2 formalisé** | `07.V2_Plan_de_tests.md` — 31 tests couvrant unitaire, intégration, E2E, non-régression V1, idempotence, résilience isolée |
 | 2025-11-12 | 🎉 **CONCEPTION V2 — 100 % TERMINÉE** | 12 documents de conception V2 produits et validés. Prêt pour l'implémentation dans n8n et Supabase. |
+| 2026-08-06 | 🛠️ **DDL V2 exécuté dans Supabase** | Toutes les tables `v2_*` créées, colonnes `execution_id` / `nb_plans_total` / `nb_plans_traites` ajoutées sur `v2_dossiers_production`, colonne `statut` ajoutée sur `v2_plans`, table `v2_journal_execution` créée |
+| 2026-08-06 | 🧰 **Catalogue `v2_outils` peuplé** | 8 outils insérés (4 image + 4 animation) selon `05.V2_Implementation_Technique.md` section 2.4 |
+| 2026-08-06 | 🚨 **Workflow V2-ERR opérationnel dans n8n** | Créé, importé, activé (Published), exporté en JSON dans `workflows/V2/V2-ERR_Gestionnaire_Erreurs.json`, pushé sur GitHub (commit `9a4f1b0`). Credentials n8n configurés (Anthropic API + Supabase PostgreSQL `ia-contenu-prod`) |
 
 ---
 
