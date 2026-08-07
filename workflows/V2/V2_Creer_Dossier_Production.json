@@ -285,7 +285,7 @@
       "typeVersion": 1,
       "position": [
         880,
-        176
+        528
       ],
       "id": "21c6a7d0-bb87-4470-ada1-5e4aa5e13f1f",
       "name": "Sticky Note"
@@ -313,7 +313,7 @@
       "typeVersion": 1,
       "position": [
         912,
-        288
+        720
       ],
       "id": "af329c2a-ea1b-427b-bba7-4319a305794c",
       "name": "C-V2-06 · Générer Scènes IA",
@@ -331,8 +331,8 @@
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
       "position": [
-        1264,
-        288
+        1200,
+        720
       ],
       "id": "9ff0b96c-b005-4dc0-8569-aa506e1db9c5",
       "name": "C-V2-07 · Normaliser Scènes"
@@ -346,8 +346,8 @@
       "type": "n8n-nodes-base.postgres",
       "typeVersion": 2.6,
       "position": [
-        1472,
-        288
+        1376,
+        720
       ],
       "id": "c419e063-5059-41d6-9ac7-494df4b12df2",
       "name": "C-V2-08 · Persister Scènes",
@@ -362,13 +362,13 @@
       "parameters": {
         "content": "📐 V2-PLAN — Découpage en Plans (C-V2-09 à C-V2-11b)\nBloc 3/6 du workflow monolithique — 4 nœuds physiques\nV2-010 §5 | ADR-V2-05 : C-V2-11b = BARRIÈRE DE PHASE (agrège les N items en 1)\nOrdre : C-V2-09 (LLM Anthropic × N scènes) → C-V2-10 (Normaliser JS) → C-V2-11 (Persister UPSERT) → C-V2-11b (UPDATE nb_plans_total)",
         "height": 384,
-        "width": 1216
+        "width": 992
       },
       "type": "n8n-nodes-base.stickyNote",
       "typeVersion": 1,
       "position": [
-        1648,
-        176
+        640,
+        -400
       ],
       "id": "7e485b6b-b13b-44e1-abfb-f68d5dfe8a03",
       "name": "Sticky Note1"
@@ -395,8 +395,8 @@
       "type": "@n8n/n8n-nodes-langchain.anthropic",
       "typeVersion": 1,
       "position": [
-        1680,
-        288
+        688,
+        -192
       ],
       "id": "f37ae2f3-d799-4af1-b70a-09cc45bfd132",
       "name": "C-V2-09 · Générer Plans IA",
@@ -414,8 +414,8 @@
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
       "position": [
-        2032,
-        288
+        976,
+        -192
       ],
       "id": "c6369f0c-bd45-42b3-a0f2-bd04dc157a1b",
       "name": "C-V2-10 · Normaliser Plans"
@@ -429,8 +429,8 @@
       "type": "n8n-nodes-base.postgres",
       "typeVersion": 2.6,
       "position": [
-        2240,
-        288
+        1152,
+        -192
       ],
       "id": "51f274a2-cc1e-46ad-b0cc-ccac80eddddf",
       "name": "C-V2-11 · Persister Plans",
@@ -450,8 +450,8 @@
       "type": "n8n-nodes-base.aggregate",
       "typeVersion": 1,
       "position": [
-        2448,
-        288
+        1328,
+        -192
       ],
       "id": "11e84359-47bc-4776-b043-b385d53022b4",
       "name": "Agg · Plans → 1 item"
@@ -465,8 +465,8 @@
       "type": "n8n-nodes-base.postgres",
       "typeVersion": 2.6,
       "position": [
-        2656,
-        288
+        1504,
+        -192
       ],
       "id": "bca799c8-3030-4d65-a007-6cae8a7b8d6f",
       "name": "C-V2-11b · Mettre à Jour Total Plans",
@@ -476,6 +476,160 @@
           "name": "ia-contenu-prod"
         }
       }
+    },
+    {
+      "parameters": {
+        "content": "📸 V2-IMG — Génération des Prompts Image (C-V2-13 à C-V2-15)\nBloc 3/6 du workflow monolithique\nV2-010 §6 | ADR-V2-05 : N items en sortie (1 par plan) → alimente V2-ANIM\nOrdre : C-V2-13 (SELECT plans) → C-V2-14 (SELECT outil) → C-V2-15a (Code JS) → C-V2-15b (LLM) → C-V2-15c (Normaliser) → C-V2-15d (UPSERT) → C-V2-15e (UPDATE statut) → Agg",
+        "height": 384,
+        "width": 1376,
+        "color": "#B9C7FD"
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        1632,
+        -400
+      ],
+      "id": "20f8c32e-195f-419d-a3de-6dce78d4a66b",
+      "name": "Sticky Note2"
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "SELECT\n    p.id                   AS plan_id,\n    p.scene_id,\n    p.numero_plan,\n    p.description_visuelle,\n    p.duree_estimee,\n    p.statut,\n    s.dossier_id,\n    s.numero_scene,\n    s.texte_narratif,\n    s.ambiance_visuelle,\n    d.outil_image_id,\n    d.execution_id,\n    o.id                   AS outil_id,\n    o.nom                  AS outil_nom,\n    o.categorie            AS outil_categorie,\n    o.specificite          AS outil_specificite,\n    o.description          AS outil_description,\n    o.modele_economique    AS outil_modele_economique\nFROM public.v2_plans p\nJOIN public.v2_scenes s\n  ON p.scene_id = s.id\nJOIN public.v2_dossiers_production d\n  ON s.dossier_id = d.id\nJOIN public.v2_outils o\n  ON o.id = d.outil_image_id\n AND o.categorie = 'image'\n AND o.actif = true\nWHERE s.dossier_id = {{ $('C-V2-05 · Créer Dossier V2').first().json.id }}\n  AND p.statut = 'EN_ATTENTE'\nORDER BY s.numero_scene, p.numero_plan;",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.6,
+      "position": [
+        1696,
+        -192
+      ],
+      "id": "d9bfb5a8-973e-4f03-90c3-1beee04af39a",
+      "name": "C-V2-13 · SELECT Plans EN_ATTENTE",
+      "credentials": {
+        "postgres": {
+          "id": "9CJdZfap0gHnWIUB",
+          "name": "ia-contenu-prod"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "// C-V2-15a · Construire Prompt Image\n// V2-IMG — Prépare le message utilisateur pour chaque plan\n// Entrée : 18 items depuis C-V2-13 (plan + conventions outil fusionnés)\n// Sortie : 18 items enrichis avec user_message prêt pour Claude\n\nconst results = [];\n\nfor (const item of $input.all()) {\n  const p = item.json;\n\n  // --- Validation des champs obligatoires ---\n  if (!p.plan_id) {\n    throw new Error('plan_id manquant sur un item — vérifier C-V2-13');\n  }\n  if (!p.description_visuelle || String(p.description_visuelle).trim() === '') {\n    throw new Error('description_visuelle vide pour plan_id=' + p.plan_id);\n  }\n  if (!p.outil_id) {\n    throw new Error('outil_id manquant pour plan_id=' + p.plan_id);\n  }\n\n  // --- Nettoyage de outil_description (retours chariot parasites) ---\n  const outilDescription = String(p.outil_description || '')\n    .replace(/\\r\\n/g, ' ')\n    .replace(/\\r/g, ' ')\n    .replace(/\\s+/g, ' ')\n    .trim();\n\n  const outilSpecificite = String(p.outil_specificite || '').trim();\n  const outilNom         = String(p.outil_nom || '').trim();\n\n  // --- Construction du message utilisateur ---\n  const userMessage = `Outil cible : ${outilNom}\nDescription de l'outil : ${outilDescription}\nSpécificité : ${outilSpecificite}\n\nScène ${p.numero_scene} — Plan ${p.numero_plan}\nDurée estimée : ${p.duree_estimee} seconde(s)\n\nContexte narratif de la scène :\n${String(p.texte_narratif).trim()}\n\nAmbiance visuelle de la scène :\n${String(p.ambiance_visuelle).trim()}\n\nDescription visuelle du plan :\n${String(p.description_visuelle).trim()}\n\nGénère un prompt image optimisé pour ${outilNom}, prêt à être copié-collé directement dans l'interface.`;\n\n  // --- Propagation des champs nécessaires aux nœuds suivants ---\n  results.push({\n    json: {\n      plan_id       : p.plan_id,\n      scene_id      : p.scene_id,\n      dossier_id    : p.dossier_id,\n      outil_id      : p.outil_id,\n      execution_id  : p.execution_id,\n      numero_scene  : p.numero_scene,\n      numero_plan   : p.numero_plan,\n      duree_estimee : p.duree_estimee,\n      user_message  : userMessage\n    }\n  });\n}\n\nreturn results;"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1856,
+        -176
+      ],
+      "id": "36e84316-1d3d-4796-a60f-1edeff490cd0",
+      "name": "C-V2-15a · Construire Prompt Image"
+    },
+    {
+      "parameters": {
+        "modelId": {
+          "__rl": true,
+          "value": "claude-sonnet-5",
+          "mode": "list",
+          "cachedResultName": "claude-sonnet-5"
+        },
+        "messages": {
+          "values": [
+            {
+              "content": "={{ $json.user_message + \"\\n\\n---\\n\\nInstructions strictes :\\n- Tu es un expert en prompt engineering pour générateurs d'images IA.\\n- Retourne UNIQUEMENT un objet JSON valide, sans texte autour, sans markdown, sans balises ```.\\n- Ne commente pas, n'explique pas, ne propose pas d'alternatives.\\n\\nFormat obligatoire :\\n\\n{\\n  \\\"texte_prompt\\\": \\\"Le prompt image final optimisé, en anglais, prêt à copier-coller dans l'outil cible. Doit être descriptif, riche en détails visuels (cadrage, sujet, lumière, style, ambiance), sans mention d'audio ni de mouvement.\\\",\\n  \\\"parametres_recommandes\\\": \\\"Paramètres recommandés pour l'outil cible : ratio d'image, style preset, quality, ou toute autre option pertinente. Format libre mais concis (1-3 lignes).\\\"\\n}\" }}"
+            }
+          ]
+        },
+        "options": {
+          "maxTokens": 800
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.anthropic",
+      "typeVersion": 1,
+      "position": [
+        2032,
+        -176
+      ],
+      "id": "6e6d5676-d452-404a-8f18-4cb718cc41d8",
+      "name": "C-V2-15b · Générer Prompt Image IA",
+      "credentials": {
+        "anthropicApi": {
+          "id": "w7OEC4dThiZIPIES",
+          "name": "Anthropic account 2"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "// C-V2-15c · Normaliser Prompts\n// V2-IMG — Parse les réponses Claude et prépare les données pour UPSERT\n// Entrée : 18 items depuis C-V2-15b (réponses Anthropic)\n// Corrélation par index : item[i] de C-V2-15b ↔ item[i] de C-V2-15a\n// Sortie : 18 items avec plan_id, outil_id, texte_prompt, parametres_recommandes\n\nconst contextItems  = $('C-V2-15a · Construire Prompt Image').all();\nconst anthropicItems = $input.all();\n\nif (contextItems.length !== anthropicItems.length) {\n  throw new Error(\n    'Désalignement contexte/LLM : ' + contextItems.length + ' contextes mais ' +\n    anthropicItems.length + ' réponses IA. Vérifier la préservation d\\'ordre n8n.'\n  );\n}\n\nconst results = [];\n\nfor (let i = 0; i < anthropicItems.length; i++) {\n  const item    = anthropicItems[i];\n  const context = contextItems[i].json;\n\n  const plan_id      = context.plan_id;\n  const outil_id     = context.outil_id;\n  const numero_scene = context.numero_scene;\n  const numero_plan  = context.numero_plan;\n\n  if (!plan_id) {\n    throw new Error('plan_id introuvable pour index ' + i + ' — vérifier C-V2-15a');\n  }\n\n  let raw = '';\n  if (Array.isArray(item.json.content)) {\n    const textBlock = item.json.content.find(b => b.type === 'text');\n    if (textBlock && textBlock.text) {\n      raw = textBlock.text.trim();\n    }\n  }\n\n  if (!raw) {\n    throw new Error(\n      'Aucun bloc \"text\" trouvé pour plan_id=' + plan_id +\n      ' (scène ' + numero_scene + ', plan ' + numero_plan + ')'\n    );\n  }\n\n  if (raw.startsWith('```')) {\n    raw = raw.replace(/^```[a-z]*\\n?/i, '').replace(/```\\s*$/, '').trim();\n  }\n\n  let parsed;\n  try {\n    parsed = JSON.parse(raw);\n  } catch (e) {\n    throw new Error(\n      'Échec parsing JSON pour plan_id=' + plan_id + ' : ' +\n      raw.substring(0, 200)\n    );\n  }\n\n  if (\n    !parsed.texte_prompt ||\n    String(parsed.texte_prompt).trim() === ''\n  ) {\n    throw new Error('texte_prompt vide pour plan_id=' + plan_id);\n  }\n\n  const parametresRecommandes = parsed.parametres_recommandes\n    ? String(parsed.parametres_recommandes).trim()\n    : '';\n\n  results.push({\n    json: {\n      plan_id                : plan_id,\n      outil_id               : outil_id,\n      numero_scene           : numero_scene,\n      numero_plan            : numero_plan,\n      texte_prompt           : String(parsed.texte_prompt).trim(),\n      parametres_recommandes : parametresRecommandes\n    }\n  });\n}\n\nreturn results;"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        2336,
+        -176
+      ],
+      "id": "de133181-ae23-439a-b36b-e070de64d7cd",
+      "name": "C-V2-15c · Normaliser Prompts"
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "INSERT INTO v2_prompts_images (\n  plan_id,\n  outil_id,\n  texte_prompt,\n  parametres_recommandes\n)\nVALUES (\n  {{ $json.plan_id }},\n  {{ $json.outil_id }},\n  '{{ $json.texte_prompt.replace(/'/g, \"''\") }}',\n  '{{ $json.parametres_recommandes.replace(/'/g, \"''\") }}'\n)\nON CONFLICT (plan_id) DO UPDATE\n  SET texte_prompt           = EXCLUDED.texte_prompt,\n      parametres_recommandes = EXCLUDED.parametres_recommandes,\n      outil_id               = EXCLUDED.outil_id\nRETURNING\n  id AS prompt_image_id,\n  plan_id,\n  outil_id,\n  texte_prompt,\n  parametres_recommandes;",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.6,
+      "position": [
+        2512,
+        -192
+      ],
+      "id": "a0aa513f-5cf6-4f19-b4f0-e50b9d82adc4",
+      "name": "C-V2-15d · Persister Prompts Images",
+      "credentials": {
+        "postgres": {
+          "id": "9CJdZfap0gHnWIUB",
+          "name": "ia-contenu-prod"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "UPDATE v2_plans\n   SET statut = 'PROMPT_IMAGE_OK'\n WHERE id = {{ $json.plan_id }}\n   AND statut = 'EN_ATTENTE'\nRETURNING\n  id            AS plan_id,\n  scene_id,\n  numero_plan,\n  statut;",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.6,
+      "position": [
+        2720,
+        -176
+      ],
+      "id": "7e773798-42ab-478d-9ae7-0d1bbe50d8fc",
+      "name": "C-V2-15e · Mettre à jour statut plans",
+      "credentials": {
+        "postgres": {
+          "id": "9CJdZfap0gHnWIUB",
+          "name": "ia-contenu-prod"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "aggregate": "aggregateAllItemData",
+        "destinationFieldName": "prompts_generes",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.aggregate",
+      "typeVersion": 1,
+      "position": [
+        2928,
+        -176
+      ],
+      "id": "043a5213-c944-4b77-b458-41e47ff00583",
+      "name": "Agg · Prompts → 1 item"
     }
   ],
   "pinData": {},
@@ -655,6 +809,83 @@
           }
         ]
       ]
+    },
+    "C-V2-11b · Mettre à Jour Total Plans": {
+      "main": [
+        [
+          {
+            "node": "C-V2-13 · SELECT Plans EN_ATTENTE",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "C-V2-13 · SELECT Plans EN_ATTENTE": {
+      "main": [
+        [
+          {
+            "node": "C-V2-15a · Construire Prompt Image",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "C-V2-15a · Construire Prompt Image": {
+      "main": [
+        [
+          {
+            "node": "C-V2-15b · Générer Prompt Image IA",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "C-V2-15b · Générer Prompt Image IA": {
+      "main": [
+        [
+          {
+            "node": "C-V2-15c · Normaliser Prompts",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "C-V2-15c · Normaliser Prompts": {
+      "main": [
+        [
+          {
+            "node": "C-V2-15d · Persister Prompts Images",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "C-V2-15d · Persister Prompts Images": {
+      "main": [
+        [
+          {
+            "node": "C-V2-15e · Mettre à jour statut plans",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "C-V2-15e · Mettre à jour statut plans": {
+      "main": [
+        [
+          {
+            "node": "Agg · Prompts → 1 item",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
     }
   },
   "active": false,
@@ -666,7 +897,7 @@
     "callerPolicy": "workflowsFromSameOwner",
     "availableInMCP": false
   },
-  "versionId": "d1dab45e-7263-43c5-b333-60491318a080",
+  "versionId": "453073b2-72e5-433a-9d5d-2d864e41b00d",
   "meta": {
     "templateCredsSetupCompleted": true,
     "instanceId": "09a4271ff440e2d4ed1d23d70521c8ceadc5f0cf389b7a9fad7d7fcb78f3bb2c"
