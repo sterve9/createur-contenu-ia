@@ -362,12 +362,12 @@
       "parameters": {
         "content": "📐 V2-PLAN — Découpage en Plans (C-V2-09 à C-V2-11b)\nBloc 3/6 du workflow monolithique — 4 nœuds physiques\nV2-010 §5 | ADR-V2-05 : C-V2-11b = BARRIÈRE DE PHASE (agrège les N items en 1)\nOrdre : C-V2-09 (LLM Anthropic × N scènes) → C-V2-10 (Normaliser JS) → C-V2-11 (Persister UPSERT) → C-V2-11b (UPDATE nb_plans_total)",
         "height": 384,
-        "width": 1216
+        "width": 1424
       },
       "type": "n8n-nodes-base.stickyNote",
       "typeVersion": 1,
       "position": [
-        -960,
+        -1168,
         -368
       ],
       "id": "7e485b6b-b13b-44e1-abfb-f68d5dfe8a03",
@@ -395,7 +395,7 @@
       "type": "@n8n/n8n-nodes-langchain.anthropic",
       "typeVersion": 1,
       "position": [
-        -896,
+        -1152,
         -192
       ],
       "id": "f37ae2f3-d799-4af1-b70a-09cc45bfd132",
@@ -414,7 +414,7 @@
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
       "position": [
-        -560,
+        -752,
         -192
       ],
       "id": "c6369f0c-bd45-42b3-a0f2-bd04dc157a1b",
@@ -429,7 +429,7 @@
       "type": "n8n-nodes-base.postgres",
       "typeVersion": 2.6,
       "position": [
-        -336,
+        -464,
         -192
       ],
       "id": "51f274a2-cc1e-46ad-b0cc-ccac80eddddf",
@@ -450,7 +450,7 @@
       "type": "n8n-nodes-base.aggregate",
       "typeVersion": 1,
       "position": [
-        -96,
+        -208,
         -192
       ],
       "id": "11e84359-47bc-4776-b043-b385d53022b4",
@@ -465,7 +465,7 @@
       "type": "n8n-nodes-base.postgres",
       "typeVersion": 2.6,
       "position": [
-        144,
+        32,
         -192
       ],
       "id": "bca799c8-3030-4d65-a007-6cae8a7b8d6f",
@@ -784,6 +784,160 @@
       ],
       "id": "3bb52e93-c3c9-4d0c-9f47-8ae30dcbfa8b",
       "name": "Agg · Animations → 1 item"
+    },
+    {
+      "parameters": {
+        "content": "## 🎯 V2-PUB — Génération des Descriptions de Publication (C-V2-20 à C-V2-22)\nBloc 6/6 (final) du workflow monolithique — 7 nœuds physiques\nV2-010 §8 | ADR-V2-05 : 1 item en sortie | ADR-V2-06 : Aggregate barrière\nOrdre : C-V2-20 (SELECT contexte dossier, 1 item) → C-V2-21a (JS fan-out 3 plateformes) → C-V2-21b (LLM Anthropic × 3) → C-V2-21c (Normaliser JS) → C-V2-21d (UPSERT descriptions, 3 rows) → Agg (3→1) → C-V2-22 (UPDATE dossier : statut='TERMINE', nb_plans_traites=18)\nPlateformes cibles : TikTok, YouTube Shorts, Instagram Reels",
+        "height": 400,
+        "width": 1744,
+        "color": "#F9B9FD"
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        1840,
+        512
+      ],
+      "id": "d65e4c40-1746-4cb8-b140-eb88f17366ea",
+      "name": "Sticky Note4"
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "SELECT\n    d.id                        AS dossier_id,\n    d.script_id,\n    d.campagne_id,\n    d.statut                    AS dossier_statut,\n    d.nb_plans_total,\n    d.nb_plans_traites,\n    d.execution_id,\n    -- Contexte V1 (script + contenu + campagne)\n    s.script                    AS script_texte,\n    co.titre                    AS contenu_titre,\n    co.plateforme               AS contenu_plateforme_source,\n    ca.sujet                    AS campagne_sujet,\n    -- Agrégats du dossier\n    (SELECT COUNT(*) FROM v2_scenes sc WHERE sc.dossier_id = d.id) AS nb_scenes,\n    (SELECT COUNT(*) FROM v2_plans p\n        JOIN v2_scenes sc ON sc.id = p.scene_id\n        WHERE sc.dossier_id = d.id) AS nb_plans,\n    -- Résumé narratif : concaténation des textes des scènes\n    (SELECT STRING_AGG(\n        'Scène ' || sc.numero_scene || ' : ' || sc.texte_narratif,\n        E'\\n'\n        ORDER BY sc.numero_scene\n    )\n     FROM v2_scenes sc\n     WHERE sc.dossier_id = d.id) AS resume_scenes\nFROM v2_dossiers_production d\nJOIN scripts s   ON s.id = d.script_id\nJOIN contenus co ON co.id = s.contenu_id\nJOIN campagnes ca ON ca.id = co.campagne_id\nWHERE d.id = {{ $('C-V2-05 · Créer Dossier V2').first().json.id }}\n  AND d.statut = 'EN_COURS';",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.6,
+      "position": [
+        1952,
+        752
+      ],
+      "id": "44b93948-8580-41b1-aa1d-6e28cf089d68",
+      "name": "C-V2-20 · SELECT Contexte Dossier",
+      "credentials": {
+        "postgres": {
+          "id": "9CJdZfap0gHnWIUB",
+          "name": "ia-contenu-prod"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "// C-V2-21a · Construire Prompts Publications\n// V2-PUB — Fan-out du dossier vers 3 plateformes cibles\n// Entrée : 1 item depuis C-V2-20 (contexte dossier complet)\n// Sortie : 3 items (1 par plateforme) enrichis avec user_message prêt pour Claude\n// Plateformes cibles : TikTok, YouTube Shorts, Instagram Reels\n\nconst dossier = $input.first().json;\n\n// --- Validation champs obligatoires ---\nif (!dossier.dossier_id) {\n  throw new Error('dossier_id manquant — vérifier C-V2-20');\n}\nif (!dossier.script_texte || String(dossier.script_texte).trim() === '') {\n  throw new Error('script_texte vide pour dossier_id=' + dossier.dossier_id);\n}\nif (!dossier.contenu_titre || String(dossier.contenu_titre).trim() === '') {\n  throw new Error('contenu_titre vide pour dossier_id=' + dossier.dossier_id);\n}\nif (!dossier.campagne_sujet || String(dossier.campagne_sujet).trim() === '') {\n  throw new Error('campagne_sujet vide pour dossier_id=' + dossier.dossier_id);\n}\n\n// --- Définition des 3 plateformes cibles ---\nconst plateformes = [\n  {\n    code       : 'TikTok',\n    contraintes: 'Titre court et accrocheur (max 100 caractères). Description max 2200 caractères avec hooks émotionnels forts, ton direct et jeune. Hashtags : 5 à 10, mix de tags viraux (#fyp, #pourtoi) et thématiques.'\n  },\n  {\n    code       : 'YouTube Shorts',\n    contraintes: 'Titre optimisé SEO YouTube (max 100 caractères, mots-clés forts en début). Description 200-500 caractères avec appel à l\\'action (like/subscribe). Hashtags : 3 à 5 pertinents, avec #Shorts obligatoire.'\n  },\n  {\n    code       : 'Instagram Reels',\n    contraintes: 'Titre / première ligne de caption impactante (max 125 caractères visibles avant \"voir plus\"). Description 300-800 caractères, storytelling + question engageante. Hashtags : 8 à 15, mix niche et volume.'\n  }\n];\n\n// --- Construction du message utilisateur pour chaque plateforme ---\nconst results = [];\n\nfor (const plat of plateformes) {\n  const userMessage = `Sujet de la campagne : ${String(dossier.campagne_sujet).trim()}\nTitre du contenu source (${String(dossier.contenu_plateforme_source || 'plateforme d\\'origine')}) : ${String(dossier.contenu_titre).trim()}\n\nScript complet de la vidéo :\n${String(dossier.script_texte).trim()}\n\nRésumé du découpage en scènes :\n${String(dossier.resume_scenes || '').trim()}\n\nNombre total de plans visuels : ${dossier.nb_plans}\n\n---\n\nPlateforme cible : ${plat.code}\nContraintes de la plateforme : ${plat.contraintes}\n\nGénère un titre, une description et une liste de hashtags optimisés pour ${plat.code}, adaptés au ton, à l'audience et aux règles de cette plateforme.`;\n\n  results.push({\n    json: {\n      dossier_id       : dossier.dossier_id,\n      execution_id     : dossier.execution_id,\n      plateforme_cible : plat.code,\n      user_message     : userMessage\n    }\n  });\n}\n\nreturn results;"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        2160,
+        752
+      ],
+      "id": "d3d9241c-9d98-4a5e-bb10-76999cbdd9b8",
+      "name": "C-V2-21a · Construire Prompts Publications"
+    },
+    {
+      "parameters": {
+        "modelId": {
+          "__rl": true,
+          "value": "claude-sonnet-5",
+          "mode": "list",
+          "cachedResultName": "claude-sonnet-5"
+        },
+        "messages": {
+          "values": [
+            {
+              "content": "={{ $json.user_message + \"\\n\\n---\\n\\nInstructions strictes :\\n- Tu es un expert en copywriting et en optimisation de contenu pour les réseaux sociaux vidéo courts.\\n- Retourne UNIQUEMENT un objet JSON valide, sans texte autour, sans markdown, sans balises ```.\\n- Ne commente pas, n'explique pas, ne propose pas d'alternatives.\\n- Respecte STRICTEMENT les contraintes de longueur et de format de la plateforme cible.\\n- Écris dans la langue du script fourni (français si le script est en français).\\n\\nFormat obligatoire :\\n\\n{\\n  \\\"titre\\\": \\\"Titre optimisé pour la plateforme, respectant la limite de caractères indiquée.\\\",\\n  \\\"texte_description\\\": \\\"Description complète adaptée à la plateforme, incluant hook, corps et appel à l'action si pertinent.\\\",\\n  \\\"hashtags\\\": \\\"Liste de hashtags séparés par des espaces, format #motclé, en respectant le nombre attendu par la plateforme.\\\"\\n}\" }}"
+            }
+          ]
+        },
+        "options": {
+          "maxTokens": 1500
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.anthropic",
+      "typeVersion": 1,
+      "position": [
+        2368,
+        752
+      ],
+      "id": "95edee21-09cd-4822-b7ae-03fe16d8987a",
+      "name": "C-V2-21b · Générer Descriptions Publications IA",
+      "credentials": {
+        "anthropicApi": {
+          "id": "w7OEC4dThiZIPIES",
+          "name": "Anthropic account 2"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "// C-V2-21c · Normaliser Descriptions Publications\n// V2-PUB — Parse les réponses Claude et prépare les données pour UPSERT\n// Entrée : 3 items depuis C-V2-21b (réponses Anthropic)\n// Corrélation par index : item[i] de C-V2-21b ↔ item[i] de C-V2-21a\n// Sortie : 3 items avec dossier_id, plateforme_cible, titre, texte_description, hashtags\n// Miroir de C-V2-17c (V2-ANIM)\n\nconst contextItems   = $('C-V2-21a · Construire Prompts Publications').all();\nconst anthropicItems = $input.all();\n\nif (contextItems.length !== anthropicItems.length) {\n  throw new Error(\n    'Désalignement contexte/LLM : ' + contextItems.length + ' contextes mais ' +\n    anthropicItems.length + ' réponses IA. Vérifier la préservation d\\'ordre n8n.'\n  );\n}\n\nconst results = [];\n\nfor (let i = 0; i < anthropicItems.length; i++) {\n  const item    = anthropicItems[i];\n  const context = contextItems[i].json;\n\n  const dossier_id       = context.dossier_id;\n  const plateforme_cible = context.plateforme_cible;\n  const execution_id     = context.execution_id;\n\n  if (!dossier_id) {\n    throw new Error('dossier_id introuvable pour index ' + i + ' — vérifier C-V2-21a');\n  }\n  if (!plateforme_cible) {\n    throw new Error('plateforme_cible introuvable pour index ' + i + ' — vérifier C-V2-21a');\n  }\n\n  // Extraction du bloc \"text\" de la réponse Anthropic\n  let raw = '';\n  if (Array.isArray(item.json.content)) {\n    const textBlock = item.json.content.find(b => b.type === 'text');\n    if (textBlock && textBlock.text) {\n      raw = textBlock.text.trim();\n    }\n  }\n\n  if (!raw) {\n    throw new Error(\n      'Aucun bloc \"text\" trouvé pour dossier_id=' + dossier_id +\n      ', plateforme=' + plateforme_cible\n    );\n  }\n\n  // Nettoyage défensif des balises markdown (```json ... ```)\n  if (raw.startsWith('```')) {\n    raw = raw.replace(/^```[a-z]*\\n?/i, '').replace(/```\\s*$/, '').trim();\n  }\n\n  // Parsing JSON\n  let parsed;\n  try {\n    parsed = JSON.parse(raw);\n  } catch (e) {\n    throw new Error(\n      'Échec parsing JSON pour dossier_id=' + dossier_id +\n      ', plateforme=' + plateforme_cible + ' : ' +\n      raw.substring(0, 200)\n    );\n  }\n\n  // Validation des 3 champs obligatoires\n  if (!parsed.titre || String(parsed.titre).trim() === '') {\n    throw new Error('titre vide pour plateforme=' + plateforme_cible);\n  }\n  if (!parsed.texte_description || String(parsed.texte_description).trim() === '') {\n    throw new Error('texte_description vide pour plateforme=' + plateforme_cible);\n  }\n  if (!parsed.hashtags || String(parsed.hashtags).trim() === '') {\n    throw new Error('hashtags vide pour plateforme=' + plateforme_cible);\n  }\n\n  results.push({\n    json: {\n      dossier_id        : dossier_id,\n      plateforme_cible  : plateforme_cible,\n      execution_id      : execution_id,\n      titre             : String(parsed.titre).trim(),\n      texte_description : String(parsed.texte_description).trim(),\n      hashtags          : String(parsed.hashtags).trim()\n    }\n  });\n}\n\nreturn results;"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        2720,
+        752
+      ],
+      "id": "fc4b3d5b-ce63-4de5-a5ce-f9d75e51564b",
+      "name": "C-V2-21c · Normaliser Descriptions Publications"
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "INSERT INTO v2_descriptions_publication (\n  dossier_id,\n  plateforme_cible,\n  titre,\n  texte_description,\n  hashtags\n)\nVALUES (\n  {{ $json.dossier_id }},\n  '{{ $json.plateforme_cible.replace(/'/g, \"''\") }}',\n  '{{ $json.titre.replace(/'/g, \"''\") }}',\n  '{{ $json.texte_description.replace(/'/g, \"''\") }}',\n  '{{ $json.hashtags.replace(/'/g, \"''\") }}'\n)\nON CONFLICT (dossier_id, plateforme_cible) DO UPDATE\n  SET titre             = EXCLUDED.titre,\n      texte_description = EXCLUDED.texte_description,\n      hashtags          = EXCLUDED.hashtags\nRETURNING\n  id AS description_id,\n  dossier_id,\n  plateforme_cible,\n  titre,\n  hashtags;",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.6,
+      "position": [
+        2928,
+        752
+      ],
+      "id": "fd8d48b0-1d49-4783-8d5f-e8dd90b27479",
+      "name": "C-V2-21d · Persister Descriptions Publications",
+      "credentials": {
+        "postgres": {
+          "id": "9CJdZfap0gHnWIUB",
+          "name": "ia-contenu-prod"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "aggregate": "aggregateAllItemData",
+        "destinationFieldName": "descriptions_persistees",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.aggregate",
+      "typeVersion": 1,
+      "position": [
+        3136,
+        752
+      ],
+      "id": "682d23b6-8c1c-4d55-a080-052b09d49a29",
+      "name": "Agg · Descriptions → 1 item"
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "UPDATE v2_dossiers_production\n   SET statut           = 'TERMINE',\n       nb_plans_traites = nb_plans_total,\n       updated_at       = NOW()\n WHERE id = {{ $('C-V2-05 · Créer Dossier V2').first().json.id }}\n   AND statut = 'EN_COURS'\nRETURNING\n  id                  AS dossier_id,\n  script_id,\n  campagne_id,\n  statut,\n  nb_plans_total,\n  nb_plans_traites,\n  execution_id,\n  updated_at;",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.6,
+      "position": [
+        3344,
+        752
+      ],
+      "id": "42162a1a-088b-4f78-84a8-666c7039c17a",
+      "name": "C-V2-22 · Clôturer Dossier",
+      "credentials": {
+        "postgres": {
+          "id": "9CJdZfap0gHnWIUB",
+          "name": "ia-contenu-prod"
+        }
+      }
     }
   ],
   "pinData": {},
@@ -1117,9 +1271,86 @@
           }
         ]
       ]
+    },
+    "Agg · Animations → 1 item": {
+      "main": [
+        [
+          {
+            "node": "C-V2-20 · SELECT Contexte Dossier",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "C-V2-20 · SELECT Contexte Dossier": {
+      "main": [
+        [
+          {
+            "node": "C-V2-21a · Construire Prompts Publications",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "C-V2-21a · Construire Prompts Publications": {
+      "main": [
+        [
+          {
+            "node": "C-V2-21b · Générer Descriptions Publications IA",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "C-V2-21b · Générer Descriptions Publications IA": {
+      "main": [
+        [
+          {
+            "node": "C-V2-21c · Normaliser Descriptions Publications",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "C-V2-21c · Normaliser Descriptions Publications": {
+      "main": [
+        [
+          {
+            "node": "C-V2-21d · Persister Descriptions Publications",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "C-V2-21d · Persister Descriptions Publications": {
+      "main": [
+        [
+          {
+            "node": "Agg · Descriptions → 1 item",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Agg · Descriptions → 1 item": {
+      "main": [
+        [
+          {
+            "node": "C-V2-22 · Clôturer Dossier",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
     }
   },
-  "active": false,
+  "active": true,
   "settings": {
     "executionOrder": "v1",
     "binaryMode": "separate",
@@ -1128,7 +1359,7 @@
     "callerPolicy": "workflowsFromSameOwner",
     "availableInMCP": false
   },
-  "versionId": "f197ce5f-337f-40f9-91fd-f24b9c09e768",
+  "versionId": "feed5b91-1ecd-4558-b095-eb1f4f957aee",
   "meta": {
     "templateCredsSetupCompleted": true,
     "instanceId": "09a4271ff440e2d4ed1d23d70521c8ceadc5f0cf389b7a9fad7d7fcb78f3bb2c"
