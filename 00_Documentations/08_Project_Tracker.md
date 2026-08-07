@@ -1,7 +1,7 @@
 # 08 — Project Tracker
 
 > **Point d'entrée officiel du projet Créateur de Contenu IA**  
-> **Dernière mise à jour** : 09 août 2026
+> **Dernière mise à jour** : 10 août 2026
 
 ---
 
@@ -19,37 +19,40 @@ Le Project Tracker pilote l'avancement du projet.
 | Version | Statut | Progression | Description |
 |---|---|---|---|
 | **V1** | 🟢 STABLE | **100%** | Verrouillée. Tag `v1.0.0-stable` sur GitHub. Aucune modif. |
-| **V2** | 🟡 DEV | **~75%** | Conception 100% OK. DDL, DB, V2-ORCH, V2-SCENE, V2-PLAN & V2-IMG opérationnels et testés. |
+| **V2** | 🟡 DEV | **~90%** | Conception 100% OK. DDL, DB, V2-ORCH, V2-SCENE, V2-PLAN, V2-IMG & V2-ANIM opérationnels et testés. |
 
 - **Projet** : Assistant IA pour Créateurs de Contenu  
-- **Phase actuelle** : Implémentation n8n du workflow V2 — **Prochaine étape : Bloc V2-ANIM**
+- **Phase actuelle** : Implémentation n8n du workflow V2 — **Prochaine étape : Bloc V2-PUB**
 
 ---
 
 ## 🎯 Tâche active
 
-- **ID** : `V2-DEV-ANIM`
-- **Titre** : Implémentation du Bloc V2-ANIM (C-V2-16 → C-V2-19)
+- **ID** : `V2-DEV-PUB`
+- **Titre** : Implémentation du Bloc V2-PUB (C-V2-20 → C-V2-22)
 - **Priorité** : P0
 - **Statut** : 🟡 Prêt à démarrer
 
 ### Objectifs de la séance :
-1. Redistribuer les 18 plans depuis la base (`SELECT` sur statut `PROMPT_IMAGE_OK`).
-2. Fusionner les conventions de l'outil animation (`v2_outils` + `outil_animation_id`) via le pattern amont (ADR-V2-07).
-3. Générer un prompt animation optimisé par plan via LLM (18 appels Claude).
-4. Persister dans `v2_prompts_animations` (UPSERT sur `plan_id`).
-5. Mettre à jour `v2_plans.statut = 'COMPLET'` (valeur autorisée dans `chk_plan_statut`).
-6. Verrouiller la fin de boucle avec la barrière Aggregate (ADR-V2-06).
+1. Redistribuer le dossier finalisé (SELECT amont sur `v2_dossiers_production` + jointures nécessaires).
+2. Générer les descriptions plateformes (titre, description, hashtags) via LLM.
+3. Persister dans `v2_descriptions_reseaux` (UPSERT sur clé métier à confirmer).
+4. Mettre à jour `v2_dossiers_production.nb_plans_traites` (choix acté séance V2-ANIM : `traité = publié`).
+5. Basculer `v2_dossiers_production.statut` vers valeur finale autorisée (à vérifier via `information_schema`).
+6. Barrière Aggregate finale (ADR-V2-06).
+7. Tests end-to-end sur `dossier_id = 5`.
 
 ### Jeu de données de test (hérité) :
-- `dossier_id` = `5`
-- 18 plans en statut `PROMPT_IMAGE_OK` prêts à être traités
-- `outil_animation_id` = `5` (Kling AI)
+- `dossier_id = 5`
+- 18 plans en statut `COMPLET`
+- 18 prompts image + 18 prompts animation persistés
+- `nb_plans_total = 18`, `nb_plans_traites = 0`
 
 ### Prérequis de vérification avant démarrage :
-- Structure de `v2_prompts_animations` vérifiée via `information_schema`
-- Contraintes (notamment unicité sur `plan_id`)
-- Fiche réelle et conventions de l'outil `id = 5` (Kling AI)
+- Structure de `v2_descriptions_reseaux` via `information_schema`
+- Contraintes (unicité, FK, CHECK sur statut dossier)
+- Valeurs autorisées pour `v2_dossiers_production.statut` (contrainte CHECK)
+- Prompt système du bloc V2-PUB dans `04.V2_Specification_des_Composants.md` §8
 
 ---
 
@@ -60,10 +63,10 @@ Le Project Tracker pilote l'avancement du projet.
 - ✅ Audits de conformité réalisés (Audit V2-010 vs Supabase & Audit colonnes checklist).
 
 ### 2. Base de Données Supabase V2 (100% ✅)
-- ✅ DDL V2 appliqué (`v2_dossiers_production`, `v2_checklists`, `v2_etapes_checklist`, `v2_scenes`, `v2_plans`, `v2_prompts`, `v2_descriptions_reseaux`, `v2_journal_execution`).
+- ✅ DDL V2 appliqué (`v2_dossiers_production`, `v2_checklists`, `v2_etapes_checklist`, `v2_scenes`, `v2_plans`, `v2_prompts_images`, `v2_prompts_animations`, `v2_descriptions_reseaux`, `v2_journal_execution`).
 - ✅ Catalogue `v2_outils` peuplé (4 outils Image, 4 outils Animation).
 
-### 3. Workflows n8n V2 (75% 🟡)
+### 3. Workflows n8n V2 (90% 🟡)
 
 | Bloc n8n | Nœuds | Statut | Validation | Date |
 |---|---|---|---|---|
@@ -72,8 +75,8 @@ Le Project Tracker pilote l'avancement du projet.
 | **V2-SCENE** | C-V2-06 → C-V2-08 | ✅ Terminé | Tested OK (5 scènes créées, script_id=13) | 08/08/2026 |
 | **V2-PLAN** | C-V2-09 → C-V2-11b | ✅ Terminé | Tested OK (18 plans créés, 5 scènes) | 08/08/2026 |
 | **V2-IMG** | C-V2-13 → C-V2-15e | ✅ Terminé | Tested OK (7 nœuds + Aggregate, 18 prompts générés en ~40s) | 09/08/2026 |
-| **V2-ANIM** | C-V2-16 → C-V2-19 | ⏳ **Prochaine étape** | En attente de démarrage | — |
-| **V2-PUB** | C-V2-20 → C-V2-22 | ⬜ À faire | En attente de V2-ANIM | — |
+| **V2-ANIM** | C-V2-16 → C-V2-18 (7 nœuds + Aggregate) | ✅ Terminé | Tested OK end-to-end (18 prompts animations générés, plans basculés en COMPLET, cardinalité 1 item validée) | 10/08/2026 |
+| **V2-PUB** | C-V2-20 → C-V2-22 | ⏳ **Prochaine étape** | En attente de démarrage | — |
 
 ---
 
@@ -83,11 +86,11 @@ Le Project Tracker pilote l'avancement du projet.
 
 - **ADR-V2-01** : Hiérarchie de vérité documentaire (`Supabase > V2-010 > V2-008`).
 - **ADR-V2-02** : Orchestration monolithique (1 seul workflow n8n principal + 1 workflow V2-ERR séparé).
-- **ADR-V2-03 (rev)** : Frontière V1/V2 via C-V2-03 simplifié à 2 `JOIN`s (`scripts → analyses → contenus`).
+- **ADR-V2-03 (rev)** : Frontière V1/V2 via C-V2-03 simplifié à 2 `JOIN`s (`scripts → contenus → campagnes`).
 - **ADR-V2-04** : Validation stricte en amont `outil_id` ↔ catégorie (Image vs Animation).
 - **ADR-V2-05** : Cardinalité 1-item garantie par bloc pour éviter les boucles accidentelles n8n.
 - **ADR-V2-06** : Barrières de regroupement Aggregate pour isoler le fan-out par bloc.
-- **ADR-V2-07** : Fusion des conventions d'outils (`v2_outils`) dans la requête `SELECT` amont du bloc.
+- **ADR-V2-07** : Fusion des conventions d'outils (`v2_outils`) dans la requête `SELECT` amont du bloc. *(Validé empiriquement sur V2-IMG le 09/08/2026 et V2-ANIM le 10/08/2026)*.
 
 ---
 
@@ -95,10 +98,9 @@ Le Project Tracker pilote l'avancement du projet.
 
 1. `08_Project_Tracker.md` *(ce document)*
 2. `06.V2_Journal_des_Decisions_d_Architecture.md` *(ADR-V2-01 à 07)*
-3. `05.V2_Implementation_Technique.md` *(Spécifications exactes des nœuds C-V2-16 à C-V2-19)*
-4. `04.1.V2_Catalogue_Outils.md` *(Conventions de prompt pour Kling AI - `outil_animation_id = 5`)*
-5. `04.V2_Specification_des_Composants.md` *(Prompts système du bloc V2-ANIM)*
-6. `07.V2_Plan_de_tests.md` *(Cas de tests pour validation)*
+3. `05.V2_Implementation_Technique.md` *(Spécifications exactes des nœuds C-V2-20 à C-V2-22)*
+4. `04.V2_Specification_des_Composants.md` *(Prompts système du bloc V2-PUB)*
+5. `07.V2_Plan_de_tests.md` *(Cas de tests pour validation)*
 
 ---
 
@@ -114,17 +116,19 @@ Le Project Tracker pilote l'avancement du projet.
 | **08/08/2026** | 🎬 **V2-SCENE Opérationnel** | Découpage LLM en scènes + persistance UPSERT. 5 scènes générées pour dossier de test. |
 | **08/08/2026** | 📐 **V2-PLAN Opérationnel** | Découpage LLM en plans + barrière de phase C-V2-11b. 18 plans générés (3-4 par scène). Pattern Aggregate (ADR-V2-05). |
 | **09/08/2026** | 🖼️ **V2-IMG Opérationnel** | 7 nœuds + Aggregate. 18 prompts image générés par Claude (~40s), persistés en base. Formalisation ADR-V2-07 (fusion outil amont). Progression : 65% → 75%. |
+| **10/08/2026** | 🎥 **V2-ANIM Opérationnel** | 7 nœuds + Aggregate (miroir V2-IMG). 18 prompts animations Kling AI générés, plans basculés en `COMPLET`. Réplication réussie ADR-V2-07 sur `outil_animation_id`. Décision actée : `nb_plans_traites` sera mis à jour dans V2-PUB (sémantique "traité = publié"). Progression : 75% → 90%. |
 
 ---
 
-## 🧭 Critères de fin de séance (Bloc V2-ANIM)
+## 🧭 Critères de fin de séance (Bloc V2-PUB)
 
 La prochaine séance sera considérée comme terminée uniquement si :
-- [ ] La structure de `v2_prompts_animations` dans Supabase est vérifiée via `information_schema`.
-- [ ] La requête `SELECT` amont récupère les 18 plans en statut `PROMPT_IMAGE_OK` et intègre la fusion avec `v2_outils` (`outil_animation_id = 5`).
-- [ ] Les nœuds C-V2-16, C-V2-17, C-V2-18, C-V2-19 sont intégrés au workflow monolithique.
-- [ ] Un test d'exécution crée les 18 prompts animation en base.
-- [ ] Les 18 plans passent en statut `COMPLET`.
-- [ ] La barrière Aggregate (ADR-V2-06) valide la transition propre vers le bloc suivant.
-- [ ] Le JSON mis à jour du workflow est sauvegardé localement.
-- [ ] Le `08_Project_Tracker.md` est mis à jour avec le statut de V2-ANIM et le passage ultime à V2-PUB.
+- [ ] La structure de `v2_descriptions_reseaux` dans Supabase est vérifiée via `information_schema`.
+- [ ] Les valeurs autorisées pour `v2_dossiers_production.statut` sont vérifiées via `information_schema`.
+- [ ] Les nœuds C-V2-20, C-V2-21, C-V2-22 sont intégrés au workflow monolithique.
+- [ ] Un test d'exécution crée les descriptions plateformes en base.
+- [ ] `v2_dossiers_production.nb_plans_traites` est mis à jour (= 18 pour le test).
+- [ ] `v2_dossiers_production.statut` bascule vers valeur finale (à confirmer, ex: `TERMINE`).
+- [ ] La barrière Aggregate finale (ADR-V2-06) valide la cardinalité 1-item du bloc.
+- [ ] Le JSON mis à jour du workflow est sauvegardé localement + commit Git.
+- [ ] Le `08_Project_Tracker.md` est mis à jour avec le statut de V2-PUB et le passage à la clôture V2.
