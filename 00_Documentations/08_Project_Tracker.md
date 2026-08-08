@@ -1,7 +1,7 @@
 # 08 — Project Tracker
 
 > **Point d'entrée officiel du projet Créateur de Contenu IA**  
-> **Dernière mise à jour** : 10 août 2026
+> **Dernière mise à jour** : 08 août 2026
 
 ---
 
@@ -19,23 +19,32 @@ Le Project Tracker pilote l'avancement du projet.
 | Version | Statut | Progression | Description |
 |---|---|---|---|
 | **V1** | 🟢 STABLE | **100%** | Verrouillée. Tag `v1.0.0-stable` sur GitHub. Aucune modif. |
-| **V2** | 🟢 **STABLE** | **100%** | **End-to-end validée sur 2 scripts distincts. Tag `v2.0.0-stable`.** |
-
-- **Projet** : Assistant IA pour Créateurs de Contenu  
-- **Phase actuelle** : ✅ **V2 CLÔTURÉE** — Prête pour utilisation en production ou évolutions ultérieures (V3).
+| **V2** | 🟢 STABLE | **100%** | End-to-end validée sur 2 scripts distincts. Tag `v2.0.0-stable`. |
+| **V2.1** | 🔵 EN COURS | **~15%** | Frontend Dashboard — Séance 1 terminée (Auth Magic Link ✅). |
 
 ---
 
 ## 🎯 Tâche active
 
-- **ID** : —
-- **Titre** : **Aucune tâche active — V2 est stable et opérationnelle**
-- **Statut** : ⏸️ En attente de décision sur la suite
+## 🎯 Tâche active
 
-### Options possibles pour la suite :
-1. **Utilisation en production** : exploiter le pipeline V2 sur des scripts réels.
-2. **Extensions V2.x** : ajouter nouvelles plateformes (Facebook, LinkedIn, X), nouveaux outils (Midjourney, Runway), ou un frontend utilisateur.
-3. **V3 – Post-production** : ajouter la génération des voix off, montage assemblé, publication automatique (voir étapes 5-9 de la checklist).
+- **ID** : V2.1-S2
+- **Titre** : Vue "Liste des dossiers" (B) end-to-end
+- **Statut** : ⚪ À démarrer
+- **Séance** : S2 / 7
+- **Objectif** : Afficher dans le dashboard une table paginée listant tous les dossiers de production du user connecté, avec colonnes : `id`, `sujet campagne`, `script`, `statut`, `dates`, `actions`. Données lues depuis Supabase via un Server Component. Scoping `user_id` obligatoire.
+
+### 📌 Critères de fin de séance S2
+- Une route `/dashboard/dossiers` (ou `/dashboard` enrichi) affiche la liste des dossiers du user connecté
+- Les données sont réellement lues depuis la table `v2_dossiers_production` de Supabase
+- Un utilisateur non connecté est redirigé vers `/login`
+- Aucun dossier d'un autre user n'est visible (scoping `user_id`)
+- Le rendu est propre (shadcn/ui + Tailwind), avec au minimum les colonnes prévues au §5
+
+### ✅ Séance précédente terminée
+- **V2.1-S1** : Setup Next.js 16 + Supabase Auth Magic Link → 🟢 TERMINÉ le 08/08/2026
+  - Auth Magic Link opérationnelle (envoi email → callback → dashboard protégé → déconnexion)
+  - Commit : `feat(auth): setup Supabase Magic Link authentication`
 
 ---
 
@@ -92,14 +101,16 @@ Le Project Tracker pilote l'avancement du projet.
 | Date | Événement / Jalon | Impact |
 |---|---|---|
 | **03/08/2025** | 🎉 V1 STABLE Livrée | Baseline V1 verrouillée. |
-| **12/11/2025** | 📐 Conception V2 Terminée | 12 documents produits. |
-| **06/08/2026** | 🛠️ Infrastructure V2 posée | DDL + Catalogue + V2-ERR. |
-| **07/08/2026** | 🚀 V2-ORCH Opérationnel | Bloc initial testé. |
-| **08/08/2026** | 🎬 V2-SCENE & V2-PLAN Opérationnels | 5 scènes + 18 plans générés. |
-| **09/08/2026** | 🖼️ V2-IMG Opérationnel | 18 prompts image + ADR-V2-07 formalisé. |
-| **10/08/2026** | 🎥 V2-ANIM Opérationnel | 18 prompts animations Kling AI. |
-| **10/08/2026** | 🎯 V2-PUB Opérationnel | 3 descriptions plateformes + clôture dossier. |
-| **10/08/2026** | 🏆 **V2 STABLE — Test E2E complet réussi** | **Dossier 6 (script 18) : pipeline complet en 4m34s. Tag `v2.0.0-stable` créé.** |
+| **04/08/2025** | 📐 Conception V2 Terminée | 12 documents produits. |
+| **04/08/2026** | 🛠️ Infrastructure V2 posée | DDL + Catalogue + V2-ERR. |
+| **05/08/2026** | 🚀 V2-ORCH Opérationnel | Bloc initial testé. |
+| **05/08/2026** | 🎬 V2-SCENE & V2-PLAN Opérationnels | 5 scènes + 18 plans générés. |
+| **06/08/2026** | 🖼️ V2-IMG Opérationnel | 18 prompts image + ADR-V2-07 formalisé. |
+| **06/08/2026** | 🎥 V2-ANIM Opérationnel | 18 prompts animations Kling AI. |
+| **07/08/2026** | 🎯 V2-PUB Opérationnel | 3 descriptions plateformes + clôture dossier. |
+| **07/08/2026** | 🏆 **V2 STABLE — Test E2E complet réussi** | **Dossier 6 (script 18) : pipeline complet en 4m34s. Tag `v2.0.0-stable` créé.** |
+| **08/08/2026** | 🔵 **V2.1 — Séance 1 démarrée** | **Démarrage Frontend Dashboard. Setup Next.js + Auth.** |
+| **08/08/2026** | ✅ **V2.1 — Séance 1 terminée** | **Auth Magic Link Supabase opérationnelle. Page dashboard protégée + déconnexion validées end-to-end. Push GitHub effectué.** |
 
 ---
 
@@ -110,12 +121,28 @@ Le Project Tracker pilote l'avancement du projet.
 3. `05.V2_Implementation_Technique.md` *(Spécifications des nœuds)*
 4. `04.V2_Specification_des_Composants.md` *(Prompts système)*
 5. `07.V2_Plan_de_tests.md` *(Cas de tests)*
+## ⚠️ Dette technique
+
+| ID | Origine | Description | Priorité | Résolution prévue |
+|---|---|---|---|---|
+| **DT-V2.1-01** | V2.1-S1 | Migration `middleware.ts` → `proxy.ts` (Next.js 16 déprécie `middleware`). Commande : `npx @next/codemod@canary middleware-to-proxy .` | Basse | Post-V2.1 |
+
+---
 
 ---
 
 ## 🧭 Prochaine séance
 
-**Aucune tâche active.** À définir selon la direction souhaitée :
-- **Option 1** : Production (utilisation réelle du pipeline)
-- **Option 2** : V2.x — Extensions (nouvelles plateformes, nouveaux outils, frontend)
-- **Option 3** : V3 — Post-production (voix off, montage, publication auto)
+## 🧭 Prochaine séance
+
+**Séance 2 — V2.1**
+
+- **Objectif** : Vue "Liste des dossiers" (B) end-to-end
+- **Documents à ouvrir en début de séance** : `08_Project_Tracker.md`, `01.V2.1_Besoin_Client.md` (§5 et §7)
+- **Critère de fin de séance** : Un utilisateur connecté voit la liste de ses dossiers de production lus depuis Supabase, avec redirection `/login` si non authentifié et scoping `user_id` respecté
+
+### ⚠️ Prérequis technique à anticiper (bloquant possible)
+Le §7 du besoin client mentionne :  
+> *"Une seule migration DB : ajout d'une colonne `user_id NOT NULL` sur `v2_dossiers_production` (avec rétro-assignation des dossiers existants au user admin)"*
+
+Cette migration Supabase devra être **exécutée avant de pouvoir filtrer par user** dans S2. À trancher en début de S2 : est-ce qu'on fait la migration d'abord, ou est-ce qu'on affiche d'abord sans filtre puis on ajoute le scoping ?
