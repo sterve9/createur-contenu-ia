@@ -63,6 +63,17 @@ Un pipeline automatisé en deux étages, chacun résolvant un problème métier 
 ### V1 — Résultat en base
 ![Campagne terminée](docs/assets/campagne-resultat.png)
 
+### V2 — Workflow monolithique complet
+![Workflow V2 complet](docs/assets/v2-workflow-complet.png)
+
+### V2 — Workflow d'erreur
+![Workflow d'erreur V2](docs/assets/v2-workflow-erreur.png)
+
+### V2 — Dossier de production terminé
+![Dossier V2 terminé](docs/assets/v2-dossier-termine.png)
+
+---
+
 ---
 ## 🛠️ Stack technique
 
