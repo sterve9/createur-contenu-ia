@@ -20,30 +20,35 @@ Le Project Tracker pilote l'avancement du projet.
 |---|---|---|---|
 | **V1** | 🟢 STABLE | **100%** | Verrouillée. Tag `v1.0.0-stable` sur GitHub. Aucune modif. |
 | **V2** | 🟢 STABLE | **100%** | End-to-end validée sur 2 scripts distincts. Tag `v2.0.0-stable`. |
-| **V2.1** | 🔵 EN COURS | **~35%** | Frontend Dashboard — S1 Auth ✅ + S2 Liste dossiers ✅. |
-
+| **V2.1** | 🔵 EN COURS | **~45%** | Frontend Dashboard — S1 Auth ✅ + S2 Liste ✅ + S3 Détail (partielle : route + dossier). |
 ---
 ## 🎯 Tâche active
 
-- **ID** : V2.1-S2
-- **Titre** : Vue "Liste des dossiers" (B) end-to-end
-- **Statut** : 🟢 TERMINÉ le 08/08/2026
-- **Séance** : S2 / 7
-- **Objectif** : Afficher dans le dashboard une table listant tous les dossiers de production du user connecté, lus depuis Supabase via Server Component. Scoping `user_id` obligatoire.
+- **ID** : V2.1-S3 (à poursuivre)
+- **Titre** : Vue "Détail d'un dossier" (C) — suite : scènes + plans + descriptions
+- **Statut** : 🟡 PARTIELLEMENT TERMINÉE
+- **Séance** : S3 / 7
+- **Objectif restant** : Compléter la page `/dashboard/dossiers/[id]` avec la lecture des `v2_scenes`, `v2_plans` (imbriqués), et `v2_descriptions_publication`. Ajouter le lien "Voir" depuis la Vue B vers la Vue C.
 
-### 📌 Critères de fin de séance S2 — TOUS VALIDÉS ✅
-- ✅ Route `/dashboard` affiche la liste des dossiers du user connecté
-- ✅ Données réellement lues depuis `v2_dossiers_production`
-- ✅ Non connecté redirigé vers `/login`
-- ✅ Aucun dossier d'un autre user visible (RLS `auth.uid() = user_id`)
-- ✅ Rendu propre table HTML Tailwind avec colonnes id, campagne, script, statut, date
+### 📌 Micro-étapes S3 réalisées ✅
+- ✅ Structure route dynamique `/dashboard/dossiers/[id]` créée
+- ✅ Route dynamique fonctionnelle (params.id capturé)
+- ✅ Protection auth ajoutée (redirect /login si non connecté)
+- ✅ Lecture sécurisée du dossier via `.eq("id", id).single()` + RLS (dossier 999 → introuvable)
+- ✅ Affichage infos dossier (Campagne, Script, Statut, Date)
+
+### 📌 Micro-étapes S3 restantes ⏳
+- ⏳ Lire les scènes (`v2_scenes` filtrées par `dossier_id`)
+- ⏳ Lire les plans (`v2_plans` imbriqués sous chaque scène)
+- ⏳ Lire les descriptions (`v2_descriptions_publication`)
+- ⏳ Ajouter lien "Voir" depuis Vue B (colonne Actions)
+- ⏳ Commit final S3
 
 ### ✅ Séances précédentes terminées
 - **V2.1-S1** : Setup Next.js 16 + Supabase Auth Magic Link → 🟢 TERMINÉ le 08/08/2026
 - **V2.1-S2** : Vue Liste des dossiers (B) — Requête serveur + RLS + Table → 🟢 TERMINÉ le 08/08/2026
   - Commit frontend : `feat(dashboard): add dossiers table with RLS-scoped data`
   - Preuve : Screenshot table `/dashboard` avec dossiers id 5 et 6 (TERMINE) visibles
-
 ---
 
 ## 🚦 État d'avancement détaillé V2
@@ -110,6 +115,7 @@ Le Project Tracker pilote l'avancement du projet.
 | **08/08/2026** | 🔵 **V2.1 — Séance 1 démarrée** | **Démarrage Frontend Dashboard. Setup Next.js + Auth.** |
 | **08/08/2026** | ✅ **V2.1 — Séance 1 terminée** | **Auth Magic Link Supabase opérationnelle. Page dashboard protégée + déconnexion validées end-to-end. Push GitHub effectué.** |
 | **08/08/2026** | ✅ **V2.1 — Séance 2 terminée** | **Vue B Liste des dossiers opérationnelle. Lecture serveur RLS + table Tailwind validées. Push GitHub effectué.** |
+| **08/08/2026** | 🟡 **V2.1 — Séance 3 démarrée (partielle)** | **Vue C Détail : route dynamique `/dashboard/dossiers/[id]` + auth + lecture dossier (RLS) opérationnels. Suite (scènes/plans/descriptions) à la S4.** |
 ---
 
 ## 📂 Documents de référence
@@ -128,11 +134,11 @@ Le Project Tracker pilote l'avancement du projet.
 ---
 ## 🧭 Prochaine séance
 
-**Séance 3 — V2.1**
+**Séance 4 — V2.1 (S3 suite + démarrage D)**
 
-- **Objectif** : Amélioration vue dossiers (badge statut coloré, jointure sujet campagne, état vide)
-- **Documents à ouvrir en début de séance** : `08_Project_Tracker.md`, `01.V2.1_Besoin_Client.md` (§5)
-- **Critère de fin de séance** : Table des dossiers enrichie visuellement + colonne sujet affichée
+- **Objectif prioritaire** : Terminer la Vue C (scènes + plans + descriptions) puis démarrer le composant "Copier" (D)
+- **Documents à ouvrir** : `08_Project_Tracker.md`, `01.V2.1_Besoin_Client.md` (§5)
+- **Critère de fin** : Vue C complète (hiérarchie scènes/plans/descriptions affichée) + navigation Vue B → Vue C fonctionnelle
 ---
 
 ## docs(tracker): close V2.1-S1 + prep V2.1-S2
