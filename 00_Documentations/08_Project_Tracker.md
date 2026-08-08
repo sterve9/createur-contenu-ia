@@ -20,31 +20,29 @@ Le Project Tracker pilote l'avancement du projet.
 |---|---|---|---|
 | **V1** | 🟢 STABLE | **100%** | Verrouillée. Tag `v1.0.0-stable` sur GitHub. Aucune modif. |
 | **V2** | 🟢 STABLE | **100%** | End-to-end validée sur 2 scripts distincts. Tag `v2.0.0-stable`. |
-| **V2.1** | 🔵 EN COURS | **~15%** | Frontend Dashboard — Séance 1 terminée (Auth Magic Link ✅). |
+| **V2.1** | 🔵 EN COURS | **~35%** | Frontend Dashboard — S1 Auth ✅ + S2 Liste dossiers ✅. |
 
 ---
-
-## 🎯 Tâche active
-
 ## 🎯 Tâche active
 
 - **ID** : V2.1-S2
 - **Titre** : Vue "Liste des dossiers" (B) end-to-end
-- **Statut** : ⚪ À démarrer
+- **Statut** : 🟢 TERMINÉ le 08/08/2026
 - **Séance** : S2 / 7
-- **Objectif** : Afficher dans le dashboard une table paginée listant tous les dossiers de production du user connecté, avec colonnes : `id`, `sujet campagne`, `script`, `statut`, `dates`, `actions`. Données lues depuis Supabase via un Server Component. Scoping `user_id` obligatoire.
+- **Objectif** : Afficher dans le dashboard une table listant tous les dossiers de production du user connecté, lus depuis Supabase via Server Component. Scoping `user_id` obligatoire.
 
-### 📌 Critères de fin de séance S2
-- Une route `/dashboard/dossiers` (ou `/dashboard` enrichi) affiche la liste des dossiers du user connecté
-- Les données sont réellement lues depuis la table `v2_dossiers_production` de Supabase
-- Un utilisateur non connecté est redirigé vers `/login`
-- Aucun dossier d'un autre user n'est visible (scoping `user_id`)
-- Le rendu est propre (shadcn/ui + Tailwind), avec au minimum les colonnes prévues au §5
+### 📌 Critères de fin de séance S2 — TOUS VALIDÉS ✅
+- ✅ Route `/dashboard` affiche la liste des dossiers du user connecté
+- ✅ Données réellement lues depuis `v2_dossiers_production`
+- ✅ Non connecté redirigé vers `/login`
+- ✅ Aucun dossier d'un autre user visible (RLS `auth.uid() = user_id`)
+- ✅ Rendu propre table HTML Tailwind avec colonnes id, campagne, script, statut, date
 
-### ✅ Séance précédente terminée
+### ✅ Séances précédentes terminées
 - **V2.1-S1** : Setup Next.js 16 + Supabase Auth Magic Link → 🟢 TERMINÉ le 08/08/2026
-  - Auth Magic Link opérationnelle (envoi email → callback → dashboard protégé → déconnexion)
-  - Commit : `feat(auth): setup Supabase Magic Link authentication`
+- **V2.1-S2** : Vue Liste des dossiers (B) — Requête serveur + RLS + Table → 🟢 TERMINÉ le 08/08/2026
+  - Commit frontend : `feat(dashboard): add dossiers table with RLS-scoped data`
+  - Preuve : Screenshot table `/dashboard` avec dossiers id 5 et 6 (TERMINE) visibles
 
 ---
 
@@ -111,7 +109,7 @@ Le Project Tracker pilote l'avancement du projet.
 | **07/08/2026** | 🏆 **V2 STABLE — Test E2E complet réussi** | **Dossier 6 (script 18) : pipeline complet en 4m34s. Tag `v2.0.0-stable` créé.** |
 | **08/08/2026** | 🔵 **V2.1 — Séance 1 démarrée** | **Démarrage Frontend Dashboard. Setup Next.js + Auth.** |
 | **08/08/2026** | ✅ **V2.1 — Séance 1 terminée** | **Auth Magic Link Supabase opérationnelle. Page dashboard protégée + déconnexion validées end-to-end. Push GitHub effectué.** |
-
+| **08/08/2026** | ✅ **V2.1 — Séance 2 terminée** | **Vue B Liste des dossiers opérationnelle. Lecture serveur RLS + table Tailwind validées. Push GitHub effectué.** |
 ---
 
 ## 📂 Documents de référence
@@ -128,21 +126,18 @@ Le Project Tracker pilote l'avancement du projet.
 | **DT-V2.1-01** | V2.1-S1 | Migration `middleware.ts` → `proxy.ts` (Next.js 16 déprécie `middleware`). Commande : `npx @next/codemod@canary middleware-to-proxy .` | Basse | Post-V2.1 |
 
 ---
+## 🧭 Prochaine séance
 
+**Séance 3 — V2.1**
+
+- **Objectif** : Amélioration vue dossiers (badge statut coloré, jointure sujet campagne, état vide)
+- **Documents à ouvrir en début de séance** : `08_Project_Tracker.md`, `01.V2.1_Besoin_Client.md` (§5)
+- **Critère de fin de séance** : Table des dossiers enrichie visuellement + colonne sujet affichée
 ---
 
-## 🧭 Prochaine séance
+## docs(tracker): close V2.1-S1 + prep V2.1-S2
 
-## 🧭 Prochaine séance
-
-**Séance 2 — V2.1**
-
-- **Objectif** : Vue "Liste des dossiers" (B) end-to-end
-- **Documents à ouvrir en début de séance** : `08_Project_Tracker.md`, `01.V2.1_Besoin_Client.md` (§5 et §7)
-- **Critère de fin de séance** : Un utilisateur connecté voit la liste de ses dossiers de production lus depuis Supabase, avec redirection `/login` si non authentifié et scoping `user_id` respecté
-
-### ⚠️ Prérequis technique à anticiper (bloquant possible)
-Le §7 du besoin client mentionne :  
-> *"Une seule migration DB : ajout d'une colonne `user_id NOT NULL` sur `v2_dossiers_production` (avec rétro-assignation des dossiers existants au user admin)"*
-
-Cette migration Supabase devra être **exécutée avant de pouvoir filtrer par user** dans S2. À trancher en début de S2 : est-ce qu'on fait la migration d'abord, ou est-ce qu'on affiche d'abord sans filtre puis on ajoute le scoping ?
+- V2.1-S1 terminée : Auth Magic Link opérationnelle end-to-end
+- Migration DB préalable S2 exécutée : user_id + RLS sur v2_dossiers_production
+- Dette technique DT-V2.1-01 tracée (middleware → proxy Next.js 16)
+- Prochaine séance : V2.1-S2 (vue Liste des dossiers)
