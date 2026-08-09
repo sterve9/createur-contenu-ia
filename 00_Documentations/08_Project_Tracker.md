@@ -1,7 +1,7 @@
 # 08 — Project Tracker
 
 > **Point d'entrée officiel du projet Créateur de Contenu IA**  
-> **Dernière mise à jour** : 09 août 2026
+> **Dernière mise à jour** : 10 août 2026
 
 ---
 
@@ -20,15 +20,15 @@ Le Project Tracker pilote l'avancement du projet.
 |---|---|---|---|
 | **V1** | 🟢 STABLE | **100%** | Verrouillée. Tag `v1.0.0-stable` sur GitHub. Aucune modif. |
 | **V2** | 🟢 STABLE | **100%** | End-to-end validée sur 2 scripts distincts. Tag `v2.0.0-stable`. |
-| **V2.1** | 🔵 EN COURS | **~60%** | Frontend Dashboard — S1 Auth ✅ + S2 Liste ✅ + S3 Détail complète ✅. Prochain : S4 (composant Copier D). |
+| **V2.1** | 🔵 EN COURS | **~75%** | Frontend Dashboard — S1 Auth ✅ + S2 Liste ✅ + S3 Détail ✅ + S4 Copier ✅. Prochain : S5 (Vue Créer F + webhook n8n). |
 ---
 ## 🎯 Tâche active
 
-- **ID** : V2.1-S4 (à démarrer)
-- **Titre** : Composant "Copier" (D) — bouton copie sur chaque prompt/description
+- **ID** : V2.1-S5 (à démarrer)
+- **Titre** : Vue "Créer un dossier" (F) + déclenchement du webhook n8n
 - **Statut** : ⏳ À DÉMARRER
-- **Séance** : S4 / 7
-- **Objectif** : Ajouter un bouton "Copier" fonctionnel avec feedback visuel à côté de chaque prompt image, prompt animation et description plateforme. Utiliser `navigator.clipboard.writeText()` dans un composant client (`"use client"`).
+- **Séance** : S5 / 7
+- **Objectif** : Créer un formulaire minimal (choix campagne + choix script) qui, à la soumission, déclenche le webhook n8n de démarrage du pipeline V2 et redirige l'utilisateur vers la Vue B (Liste des dossiers).
 
 ### ✅ Séances précédentes terminées
 - **V2.1-S1** : Setup Next.js 16 + Supabase Auth Magic Link → 🟢 TERMINÉ le 08/08/2026
@@ -37,6 +37,11 @@ Le Project Tracker pilote l'avancement du projet.
 - **V2.1-S3** : Vue Détail dossier (C) complète + navigation Vue B → Vue C → 🟢 TERMINÉ le 09/08/2026
   - Commit : `feat(dashboard): complete dossier detail view with scenes, plans, prompts and navigation`
   - Preuve : Vue C hiérarchique (dossier → scènes → plans → prompts image + animation) + descriptions par plateforme + lien "Voir" fonctionnel depuis Vue B
+- **V2.1-S4** : Composant "Copier" (D) intégré sur tous les blocs copiables → 🟢 TERMINÉ le 10/08/2026
+  - Commits : 
+    - `feat(dashboard): add CopyButton component on all copyable blocks`
+    - `style(dashboard): use canonical Tailwind class shrink-0`
+  - Preuve : ~47 boutons "Copier" fonctionnels sur le dossier 6 (5 narrations + 18 prompts image + 18 prompts animation + 3 descriptions + 3 hashtags) avec feedback visuel "Copié ✓" 2s.
 
 ---
 
@@ -49,23 +54,18 @@ Le Project Tracker pilote l'avancement du projet.
 | **S1** | Setup Next.js + Supabase Auth Magic Link | 🟢 Terminé | 08/08/2026 |
 | **S2** | Vue "Liste des dossiers" (B) | 🟢 Terminé | 08/08/2026 |
 | **S3** | Vue "Détail d'un dossier" (C) complète | 🟢 Terminé | 09/08/2026 |
-| **S4** | Composant "Copier" (D) intégré partout | ⏳ À démarrer | — |
-| **S5** | Vue "Créer un dossier" (F) + webhook n8n | ⏳ Planifié | — |
+| **S4** | Composant "Copier" (D) intégré partout | 🟢 Terminé | 10/08/2026 |
+| **S5** | Vue "Créer un dossier" (F) + webhook n8n | ⏳ À démarrer | — |
 | **S6** | Déploiement Vercel + domaine `dashboard.sterveshop.cloud` | ⏳ Planifié | — |
 | **S7** | Documentation V2.1 + tag `v2.1.0-stable` | ⏳ Planifié | — |
 
-### Micro-étapes S3 réalisées ✅ (récap)
-- ✅ Structure route dynamique `/dashboard/dossiers/[id]`
-- ✅ Protection auth (redirect `/login`)
-- ✅ Lecture sécurisée du dossier via RLS
-- ✅ Lecture scènes (`v2_scenes` filtrées par `dossier_id`, triées par `numero_scene`)
-- ✅ Lecture plans (`v2_plans` via `.in("scene_id", sceneIds)`, triés par `numero_plan`)
-- ✅ Lecture prompts image (`v2_prompts_images` via `.in("plan_id", planIds)`)
-- ✅ Lecture prompts animation (`v2_prompts_animations` via `.in("plan_id", planIds)`)
-- ✅ Lecture descriptions (`v2_descriptions_publication` filtrées par `dossier_id`)
-- ✅ Affichage hiérarchique minimaliste (dossier → scènes → plans → 2 prompts)
-- ✅ Descriptions par plateforme en grille 3 colonnes
-- ✅ Lien "Voir" depuis Vue B (colonne Actions avec `<Link>` Next.js)
+### Micro-étapes S4 réalisées ✅ (récap)
+- ✅ Création du composant client réutilisable `<CopyButton text="..." />` (`app/dashboard/dossiers/[id]/copy-button.tsx`)
+- ✅ Utilisation de `navigator.clipboard.writeText()` avec `useState` pour l'état "copié"
+- ✅ Feedback visuel : bascule "Copier" ↔ "Copié ✓" pendant 2s (`setTimeout`)
+- ✅ Intégration progressive : narration → puis généralisation à tous les blocs copiables
+- ✅ Rendering conditionnel : le bouton ne s'affiche que si le texte cible existe (évite les boutons vides)
+- ✅ Correction cosmétique : classes Tailwind normalisées (`flex-shrink-0` → `shrink-0`) — 0 warning restant
 
 ---
 
@@ -133,6 +133,7 @@ Le Project Tracker pilote l'avancement du projet.
 | **08/08/2026** | ✅ **V2.1-S1 terminée** | **Auth Magic Link opérationnelle end-to-end.** |
 | **08/08/2026** | ✅ **V2.1-S2 terminée** | **Vue B Liste des dossiers opérationnelle avec RLS.** |
 | **09/08/2026** | ✅ **V2.1-S3 terminée** | **Vue C Détail dossier complète : hiérarchie scènes → plans → prompts image/animation + descriptions par plateforme. Navigation Vue B → Vue C fonctionnelle. Décision produit DP-V2.1-01 (affichage minimaliste) actée.** |
+| **10/08/2026** | ✅ **V2.1-S4 terminée** | **Composant `<CopyButton />` réutilisable + intégration sur tous les blocs copiables de la Vue C (~47 boutons). UX de copie rapide alignée avec le besoin §7.** |
 
 ---
 
@@ -222,18 +223,14 @@ Modifier les prompts système des nœuds suivants dans le bloc V2-PUB :
 
 ## 🧭 Prochaine séance
 
-**Séance 5 — V2.1 (S4 : Composant "Copier" D)**
+**Séance 6 — V2.1 (S5 : Vue "Créer un dossier" F + webhook n8n)**
 
-- **Objectif prioritaire** : Ajouter un bouton "Copier" fonctionnel avec feedback visuel à côté de chaque prompt image, prompt animation et description plateforme dans la Vue C.
-- **Prérequis technique** : composant client (`"use client"`) utilisant `navigator.clipboard.writeText()`.
-- **Documents à ouvrir** : `08_Project_Tracker.md`, `01.V2.1_Besoin_Client.md` (§5 Vue D).
-- **Critère de fin** : chaque bloc copiable dispose d'un bouton "Copier" avec confirmation visuelle ("Copié ✓" pendant 2s) + commit + push GitHub.
-
----
-
-## docs(tracker): enrich DT-V2.1-02 with full context
-
-- Enrichissement de la DT-V2.1-02 avec observation factuelle (~800-1000 car mesurés sur dossier 6)
-- Ajout du verbatim user d'origine (traçabilité de la décision)
-- Ajout du tableau des cibles par plateforme avec justifications UX
-- Restructuration de la section "Dette technique" en format détaillé (une section par dette au lieu d'un tableau)
+- **Objectif prioritaire** : construire le formulaire de création d'un nouveau dossier (choix campagne + choix script) qui, à la soumission, déclenche le webhook n8n de démarrage du pipeline V2, puis redirige vers la Vue B.
+- **Prérequis technique** :
+  - Server Action ou Route Handler Next.js (à décider en séance)
+  - URL du webhook n8n V2-ORCH à récupérer
+  - Lecture des campagnes disponibles (à confirmer : y a-t-il une table `v2_campagnes` scopée user ?)
+  - Lecture des scripts disponibles (à confirmer : structure de la table `scripts`)
+- **⚠️ Prérequis DB à valider en début de séance** : screenshot Supabase des tables `campagnes` et `scripts` (règle zéro invention DB).
+- **Documents à ouvrir** : `08_Project_Tracker.md`, `01.V2.1_Besoin_Client.md` (§5 Vue F).
+- **Critère de fin** : à partir de la Vue A/B, l'utilisateur peut créer un nouveau dossier, le webhook n8n est déclenché, un nouveau dossier apparaît dans la liste avec statut initial "en cours" + commit + push GitHub.
