@@ -1,7 +1,7 @@
 # 08 — Project Tracker
 
 > **Point d'entrée officiel du projet Créateur de Contenu IA**  
-> **Dernière mise à jour** : 08 août 2026
+> **Dernière mise à jour** : 09 août 2026
 
 ---
 
@@ -20,48 +20,68 @@ Le Project Tracker pilote l'avancement du projet.
 |---|---|---|---|
 | **V1** | 🟢 STABLE | **100%** | Verrouillée. Tag `v1.0.0-stable` sur GitHub. Aucune modif. |
 | **V2** | 🟢 STABLE | **100%** | End-to-end validée sur 2 scripts distincts. Tag `v2.0.0-stable`. |
-| **V2.1** | 🔵 EN COURS | **~45%** | Frontend Dashboard — S1 Auth ✅ + S2 Liste ✅ + S3 Détail (partielle : route + dossier). |
+| **V2.1** | 🔵 EN COURS | **~60%** | Frontend Dashboard — S1 Auth ✅ + S2 Liste ✅ + S3 Détail complète ✅. Prochain : S4 (composant Copier D). |
 ---
 ## 🎯 Tâche active
 
-- **ID** : V2.1-S3 (à poursuivre)
-- **Titre** : Vue "Détail d'un dossier" (C) — suite : scènes + plans + descriptions
-- **Statut** : 🟡 PARTIELLEMENT TERMINÉE
-- **Séance** : S3 / 7
-- **Objectif restant** : Compléter la page `/dashboard/dossiers/[id]` avec la lecture des `v2_scenes`, `v2_plans` (imbriqués), et `v2_descriptions_publication`. Ajouter le lien "Voir" depuis la Vue B vers la Vue C.
-
-### 📌 Micro-étapes S3 réalisées ✅
-- ✅ Structure route dynamique `/dashboard/dossiers/[id]` créée
-- ✅ Route dynamique fonctionnelle (params.id capturé)
-- ✅ Protection auth ajoutée (redirect /login si non connecté)
-- ✅ Lecture sécurisée du dossier via `.eq("id", id).single()` + RLS (dossier 999 → introuvable)
-- ✅ Affichage infos dossier (Campagne, Script, Statut, Date)
-
-### 📌 Micro-étapes S3 restantes ⏳
-- ⏳ Lire les scènes (`v2_scenes` filtrées par `dossier_id`)
-- ⏳ Lire les plans (`v2_plans` imbriqués sous chaque scène)
-- ⏳ Lire les descriptions (`v2_descriptions_publication`)
-- ⏳ Ajouter lien "Voir" depuis Vue B (colonne Actions)
-- ⏳ Commit final S3
+- **ID** : V2.1-S4 (à démarrer)
+- **Titre** : Composant "Copier" (D) — bouton copie sur chaque prompt/description
+- **Statut** : ⏳ À DÉMARRER
+- **Séance** : S4 / 7
+- **Objectif** : Ajouter un bouton "Copier" fonctionnel avec feedback visuel à côté de chaque prompt image, prompt animation et description plateforme. Utiliser `navigator.clipboard.writeText()` dans un composant client (`"use client"`).
 
 ### ✅ Séances précédentes terminées
 - **V2.1-S1** : Setup Next.js 16 + Supabase Auth Magic Link → 🟢 TERMINÉ le 08/08/2026
 - **V2.1-S2** : Vue Liste des dossiers (B) — Requête serveur + RLS + Table → 🟢 TERMINÉ le 08/08/2026
-  - Commit frontend : `feat(dashboard): add dossiers table with RLS-scoped data`
-  - Preuve : Screenshot table `/dashboard` avec dossiers id 5 et 6 (TERMINE) visibles
+  - Commit : `feat(dashboard): add dossiers table with RLS-scoped data`
+- **V2.1-S3** : Vue Détail dossier (C) complète + navigation Vue B → Vue C → 🟢 TERMINÉ le 09/08/2026
+  - Commit : `feat(dashboard): complete dossier detail view with scenes, plans, prompts and navigation`
+  - Preuve : Vue C hiérarchique (dossier → scènes → plans → prompts image + animation) + descriptions par plateforme + lien "Voir" fonctionnel depuis Vue B
+
 ---
 
-## 🚦 État d'avancement détaillé V2
+## 🚦 État d'avancement détaillé V2.1
+
+### Séances V2.1
+
+| Séance | Livrable | Statut | Date |
+|---|---|---|---|
+| **S1** | Setup Next.js + Supabase Auth Magic Link | 🟢 Terminé | 08/08/2026 |
+| **S2** | Vue "Liste des dossiers" (B) | 🟢 Terminé | 08/08/2026 |
+| **S3** | Vue "Détail d'un dossier" (C) complète | 🟢 Terminé | 09/08/2026 |
+| **S4** | Composant "Copier" (D) intégré partout | ⏳ À démarrer | — |
+| **S5** | Vue "Créer un dossier" (F) + webhook n8n | ⏳ Planifié | — |
+| **S6** | Déploiement Vercel + domaine `dashboard.sterveshop.cloud` | ⏳ Planifié | — |
+| **S7** | Documentation V2.1 + tag `v2.1.0-stable` | ⏳ Planifié | — |
+
+### Micro-étapes S3 réalisées ✅ (récap)
+- ✅ Structure route dynamique `/dashboard/dossiers/[id]`
+- ✅ Protection auth (redirect `/login`)
+- ✅ Lecture sécurisée du dossier via RLS
+- ✅ Lecture scènes (`v2_scenes` filtrées par `dossier_id`, triées par `numero_scene`)
+- ✅ Lecture plans (`v2_plans` via `.in("scene_id", sceneIds)`, triés par `numero_plan`)
+- ✅ Lecture prompts image (`v2_prompts_images` via `.in("plan_id", planIds)`)
+- ✅ Lecture prompts animation (`v2_prompts_animations` via `.in("plan_id", planIds)`)
+- ✅ Lecture descriptions (`v2_descriptions_publication` filtrées par `dossier_id`)
+- ✅ Affichage hiérarchique minimaliste (dossier → scènes → plans → 2 prompts)
+- ✅ Descriptions par plateforme en grille 3 colonnes
+- ✅ Lien "Voir" depuis Vue B (colonne Actions avec `<Link>` Next.js)
+
+---
+
+## 🧠 Décisions produit V2.1 actées
+
+### DP-V2.1-01 — Vue C minimaliste orientée action (S3)
+**Contexte** : le pipeline V2 produit plusieurs champs par plan/scène (`ambiance_visuelle`, `description_visuelle`, `parametres_recommandes`) qui ne sont pas directement copiés par l'utilisateur dans ses outils IA.  
+**Décision** : la Vue C n'affiche **que les champs actionnables** : narration (voix off), prompt image, prompt animation, descriptions par plateforme.  
+**Justification** : cohérent avec §7 du besoin V2.1 → *"UX orientée copie rapide : passer d'un dossier à ses outils en < 30 secondes"*. Les champs non affichés sont conservés en base (aucune suppression DB).
+
+---
+
+## 🚦 État d'avancement détaillé V2 (rappel)
 
 ### 1. Conception & Documentation V2 (100% ✅)
-- ✅ 13 documents de conception validés.
-- ✅ Audits de conformité réalisés.
-
 ### 2. Base de Données Supabase V2 (100% ✅)
-- ✅ DDL V2 appliqué (10 tables).
-- ✅ Catalogue `v2_outils` peuplé.
-- ✅ Correction ADR-V2-01 : nom réel `v2_descriptions_publication` (et non `v2_descriptions_reseaux`).
-
 ### 3. Workflows n8n V2 (100% ✅)
 
 | Bloc n8n | Nœuds | Statut | Date |
@@ -78,10 +98,8 @@ Le Project Tracker pilote l'avancement du projet.
 
 | Test | dossier_id | script_id | Sujet | Statut final | Durée |
 |---|---|---|---|---|---|
-| Test 1 | 5 | 13 | Intelligence Artificielle | ✅ TERMINE | Fragmenté (test par bloc) |
+| Test 1 | 5 | 13 | Intelligence Artificielle | ✅ TERMINE | Fragmenté |
 | **Test 2 (E2E complet)** | **6** | **18** | **Productivité au travail** | **✅ TERMINE** | **~4m34s** |
-
-**Volumétrie produite par exécution** : 5 scènes + 18 plans + 18 prompts image + 18 prompts animation + 3 descriptions + 1 checklist (9 étapes)
 
 ---
 
@@ -95,7 +113,7 @@ Le Project Tracker pilote l'avancement du projet.
 - **ADR-V2-04** : Validation stricte en amont `outil_id` ↔ catégorie.
 - **ADR-V2-05** : Cardinalité 1-item garantie par bloc.
 - **ADR-V2-06** : Barrières Aggregate + `.first()`.
-- **ADR-V2-07** : Fusion des conventions d'outils dans le SELECT amont *(validé sur V2-IMG et V2-ANIM)*.
+- **ADR-V2-07** : Fusion des conventions d'outils dans le SELECT amont.
 
 ---
 
@@ -111,39 +129,49 @@ Le Project Tracker pilote l'avancement du projet.
 | **06/08/2026** | 🖼️ V2-IMG Opérationnel | 18 prompts image + ADR-V2-07 formalisé. |
 | **06/08/2026** | 🎥 V2-ANIM Opérationnel | 18 prompts animations Kling AI. |
 | **07/08/2026** | 🎯 V2-PUB Opérationnel | 3 descriptions plateformes + clôture dossier. |
-| **07/08/2026** | 🏆 **V2 STABLE — Test E2E complet réussi** | **Dossier 6 (script 18) : pipeline complet en 4m34s. Tag `v2.0.0-stable` créé.** |
-| **08/08/2026** | 🔵 **V2.1 — Séance 1 démarrée** | **Démarrage Frontend Dashboard. Setup Next.js + Auth.** |
-| **08/08/2026** | ✅ **V2.1 — Séance 1 terminée** | **Auth Magic Link Supabase opérationnelle. Page dashboard protégée + déconnexion validées end-to-end. Push GitHub effectué.** |
-| **08/08/2026** | ✅ **V2.1 — Séance 2 terminée** | **Vue B Liste des dossiers opérationnelle. Lecture serveur RLS + table Tailwind validées. Push GitHub effectué.** |
-| **08/08/2026** | 🟡 **V2.1 — Séance 3 démarrée (partielle)** | **Vue C Détail : route dynamique `/dashboard/dossiers/[id]` + auth + lecture dossier (RLS) opérationnels. Suite (scènes/plans/descriptions) à la S4.** |
+| **07/08/2026** | 🏆 **V2 STABLE — Test E2E complet réussi** | **Dossier 6 : pipeline complet en 4m34s. Tag `v2.0.0-stable`.** |
+| **08/08/2026** | ✅ **V2.1-S1 terminée** | **Auth Magic Link opérationnelle end-to-end.** |
+| **08/08/2026** | ✅ **V2.1-S2 terminée** | **Vue B Liste des dossiers opérationnelle avec RLS.** |
+| **09/08/2026** | ✅ **V2.1-S3 terminée** | **Vue C Détail dossier complète : hiérarchie scènes → plans → prompts image/animation + descriptions par plateforme. Navigation Vue B → Vue C fonctionnelle. Décision produit DP-V2.1-01 (affichage minimaliste) actée.** |
+
 ---
 
 ## 📂 Documents de référence
 
 1. `08_Project_Tracker.md` *(ce document)*
-2. `06.V2_Journal_des_Decisions_d_Architecture.md` *(ADR-V2-01 à 07)*
-3. `05.V2_Implementation_Technique.md` *(Spécifications des nœuds)*
-4. `04.V2_Specification_des_Composants.md` *(Prompts système)*
-5. `07.V2_Plan_de_tests.md` *(Cas de tests)*
+2. `01.V2.1_Besoin_Client.md` *(périmètre V2.1, §5 vues MVP)*
+3. `06.V2_Journal_des_Decisions_d_Architecture.md` *(ADR-V2-01 à 07)*
+4. `05.V2_Implementation_Technique.md` *(Spécifications des nœuds)*
+5. `04.V2_Specification_des_Composants.md` *(Prompts système)*
+6. `07.V2_Plan_de_tests.md` *(Cas de tests)*
+
+---
+
 ## ⚠️ Dette technique
 
 | ID | Origine | Description | Priorité | Résolution prévue |
 |---|---|---|---|---|
 | **DT-V2.1-01** | V2.1-S1 | Migration `middleware.ts` → `proxy.ts` (Next.js 16 déprécie `middleware`). Commande : `npx @next/codemod@canary middleware-to-proxy .` | Basse | Post-V2.1 |
+| **DT-V2.1-02** | V2.1-S3 | Descriptions générées par le pipeline V2-PUB trop longues (ressemblent à des scripts narratifs plutôt qu'à des captions optimisées). Ajouter contrainte de longueur dans les prompts système : TikTok ~300 car, IG ~125 car (partie visible), YouTube ~150 car (hook). | Moyenne | Post-V2.1 (retour sur V2-PUB) |
+| **DT-V2.1-03** | V2.1-S3 | Champs `ambiance_visuelle` (v2_scenes), `description_visuelle` (v2_plans) et `parametres_recommandes` (v2_prompts_*) produits par le pipeline mais non affichés dans la Vue C car non-actionnables pour l'utilisateur (voir DP-V2.1-01). Décider en V3 : suppression DB, usage interne uniquement, ou affichage optionnel (accordéon "Réglages avancés"). | Basse | V3+ |
+| **DT-V2.1-04** | V2.1-S3 | Tables enfants (`v2_scenes`, `v2_plans`, `v2_prompts_images`, `v2_prompts_animations`, `v2_descriptions_publication`) ont `RLS disabled`. Scoping actuel repose sur la RLS de `v2_dossiers_production` via jointure. À évaluer : activer RLS + policies sur tables enfants pour défense en profondeur. | Moyenne | Avant multi-user (V2.2+) |
 
 ---
+
 ## 🧭 Prochaine séance
 
-**Séance 4 — V2.1 (S3 suite + démarrage D)**
+**Séance 5 — V2.1 (S4 : Composant "Copier" D)**
 
-- **Objectif prioritaire** : Terminer la Vue C (scènes + plans + descriptions) puis démarrer le composant "Copier" (D)
-- **Documents à ouvrir** : `08_Project_Tracker.md`, `01.V2.1_Besoin_Client.md` (§5)
-- **Critère de fin** : Vue C complète (hiérarchie scènes/plans/descriptions affichée) + navigation Vue B → Vue C fonctionnelle
+- **Objectif prioritaire** : Ajouter un bouton "Copier" fonctionnel avec feedback visuel à côté de chaque prompt image, prompt animation et description plateforme dans la Vue C.
+- **Prérequis technique** : composant client (`"use client"`) utilisant `navigator.clipboard.writeText()`.
+- **Documents à ouvrir** : `08_Project_Tracker.md`, `01.V2.1_Besoin_Client.md` (§5 Vue D).
+- **Critère de fin** : chaque bloc copiable dispose d'un bouton "Copier" avec confirmation visuelle ("Copié ✓" pendant 2s) + commit + push GitHub.
+
 ---
 
-## docs(tracker): close V2.1-S1 + prep V2.1-S2
+## docs(tracker): close V2.1-S3 + prep V2.1-S4
 
-- V2.1-S1 terminée : Auth Magic Link opérationnelle end-to-end
-- Migration DB préalable S2 exécutée : user_id + RLS sur v2_dossiers_production
-- Dette technique DT-V2.1-01 tracée (middleware → proxy Next.js 16)
-- Prochaine séance : V2.1-S2 (vue Liste des dossiers)
+- V2.1-S3 terminée : Vue C complète (dossier → scènes → plans → prompts image/animation → descriptions par plateforme) + navigation Vue B → Vue C fonctionnelle
+- Décision produit DP-V2.1-01 actée : affichage minimaliste orienté action (masquage `ambiance_visuelle`, `description_visuelle`, `parametres_recommandes`)
+- 3 nouvelles dettes techniques tracées (DT-V2.1-02 descriptions trop longues, DT-V2.1-03 champs non affichés, DT-V2.1-04 RLS tables enfants)
+- Prochaine séance : V2.1-S4 (composant "Copier" D)
