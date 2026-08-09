@@ -149,12 +149,74 @@ Le Project Tracker pilote l'avancement du projet.
 
 ## ⚠️ Dette technique
 
-| ID | Origine | Description | Priorité | Résolution prévue |
-|---|---|---|---|---|
-| **DT-V2.1-01** | V2.1-S1 | Migration `middleware.ts` → `proxy.ts` (Next.js 16 déprécie `middleware`). Commande : `npx @next/codemod@canary middleware-to-proxy .` | Basse | Post-V2.1 |
-| **DT-V2.1-02** | V2.1-S3 | Descriptions générées par le pipeline V2-PUB trop longues (ressemblent à des scripts narratifs plutôt qu'à des captions optimisées). Ajouter contrainte de longueur dans les prompts système : TikTok ~300 car, IG ~125 car (partie visible), YouTube ~150 car (hook). | Moyenne | Post-V2.1 (retour sur V2-PUB) |
-| **DT-V2.1-03** | V2.1-S3 | Champs `ambiance_visuelle` (v2_scenes), `description_visuelle` (v2_plans) et `parametres_recommandes` (v2_prompts_*) produits par le pipeline mais non affichés dans la Vue C car non-actionnables pour l'utilisateur (voir DP-V2.1-01). Décider en V3 : suppression DB, usage interne uniquement, ou affichage optionnel (accordéon "Réglages avancés"). | Basse | V3+ |
-| **DT-V2.1-04** | V2.1-S3 | Tables enfants (`v2_scenes`, `v2_plans`, `v2_prompts_images`, `v2_prompts_animations`, `v2_descriptions_publication`) ont `RLS disabled`. Scoping actuel repose sur la RLS de `v2_dossiers_production` via jointure. À évaluer : activer RLS + policies sur tables enfants pour défense en profondeur. | Moyenne | Avant multi-user (V2.2+) |
+### DT-V2.1-01 — Migration `middleware.ts` → `proxy.ts`
+- **Origine** : V2.1-S1
+- **Priorité** : Basse
+- **Résolution prévue** : Post-V2.1
+- **Description** : Next.js 16 déprécie `middleware` au profit de `proxy`. Warning affiché au démarrage : *"The 'middleware' file convention is deprecated. Please use 'proxy' instead."*
+- **Action** : exécuter `npx @next/codemod@canary middleware-to-proxy .` puis vérifier le fonctionnement de l'auth.
+
+---
+
+### DT-V2.1-02 — Descriptions générées trop longues pour être exploitables
+- **Origine** : V2.1-S3 (identifié par le user pendant l'analyse UX de la Vue C)
+- **Priorité** : Moyenne
+- **Résolution prévue** : Post-V2.1 (retour sur bloc V2-PUB)
+
+**Observation factuelle (dossier 6, script 18)** :
+Les 3 descriptions générées (TikTok, YouTube Shorts, Instagram Reels) font entre **~800 et 1000 caractères** et ressemblent davantage à des mini-scripts narratifs qu'à des captions optimisées pour l'engagement sur les plateformes.
+
+**Verbatim user (S3)** :
+> *"S'il s'agit uniquement du texte de description, je pense qu'il va falloir limiter le nombre de caractères. Je vois que je ne l'ai pas fait, car ce texte de description généré est presque similaire à un texte pour générer la vidéo entière, c'est trop."*
+
+**Cibles recommandées** (basées sur les bonnes pratiques UX de chaque plateforme) :
+
+| Plateforme | Limite plateforme | Cible engagement | Justification |
+|---|---|---|---|
+| TikTok | 2 200 car | **~300 car** | Sweet spot engagement 150-300 car |
+| Instagram Reels | 2 200 car | **~125 car** | Partie visible avant "...plus" |
+| YouTube Shorts | 5 000 car | **~150 car** | Hook des 3 premières lignes critiques |
+
+**Action à réaliser** :
+Modifier les prompts système des nœuds suivants dans le bloc V2-PUB :
+- `C-V2-20` (TikTok) — ajouter contrainte "maximum 300 caractères"
+- `C-V2-21` (YouTube Shorts) — ajouter contrainte "hook maximum 150 caractères"
+- `C-V2-22` (Instagram Reels) — ajouter contrainte "hook maximum 125 caractères avant coupure"
+
+**Impact attendu** :
+- ⏱️ Gain de temps pour le créateur (pas besoin de raccourcir manuellement)
+- 📈 Meilleure performance des publications (formats plus engageants)
+- ✅ Meilleur alignement avec le besoin V2.1 §7 (UX de copie rapide)
+
+---
+
+### DT-V2.1-03 — Champs pipeline non affichés dans la Vue C
+- **Origine** : V2.1-S3 (décision produit DP-V2.1-01)
+- **Priorité** : Basse
+- **Résolution prévue** : V3+
+
+**Description** : trois champs produits par le pipeline V2 sont conservés en base mais **non affichés** dans la Vue C car non-actionnables pour l'utilisateur final :
+- `ambiance_visuelle` (v2_scenes) — brief artistique intermédiaire
+- `description_visuelle` (v2_plans) — redondant avec le prompt image en anglais
+- `parametres_recommandes` (v2_prompts_images / v2_prompts_animations) — réglages techniques secondaires
+
+**Décision à prendre en V3** :
+- Option 1 : suppression DB (nettoyage)
+- Option 2 : conservation pour usage pipeline interne uniquement
+- Option 3 : affichage optionnel via accordéon "Réglages avancés"
+
+---
+
+### DT-V2.1-04 — RLS désactivée sur les tables enfants
+- **Origine** : V2.1-S3
+- **Priorité** : Moyenne
+- **Résolution prévue** : Avant multi-user (V2.2+)
+
+**Description** : les tables `v2_scenes`, `v2_plans`, `v2_prompts_images`, `v2_prompts_animations`, `v2_descriptions_publication` ont `RLS disabled`. Le scoping actuel repose uniquement sur la RLS de `v2_dossiers_production` via les jointures FK.
+
+**Risque** : en cas de bug applicatif ou de contournement, un utilisateur pourrait accéder aux données enfants d'un autre user.
+
+**Action** : activer RLS + policies (SELECT/INSERT/UPDATE/DELETE) sur chaque table enfant, basées sur la remontée jusqu'à `v2_dossiers_production.user_id`.
 
 ---
 
@@ -169,9 +231,9 @@ Le Project Tracker pilote l'avancement du projet.
 
 ---
 
-## docs(tracker): close V2.1-S3 + prep V2.1-S4
+## docs(tracker): enrich DT-V2.1-02 with full context
 
-- V2.1-S3 terminée : Vue C complète (dossier → scènes → plans → prompts image/animation → descriptions par plateforme) + navigation Vue B → Vue C fonctionnelle
-- Décision produit DP-V2.1-01 actée : affichage minimaliste orienté action (masquage `ambiance_visuelle`, `description_visuelle`, `parametres_recommandes`)
-- 3 nouvelles dettes techniques tracées (DT-V2.1-02 descriptions trop longues, DT-V2.1-03 champs non affichés, DT-V2.1-04 RLS tables enfants)
-- Prochaine séance : V2.1-S4 (composant "Copier" D)
+- Enrichissement de la DT-V2.1-02 avec observation factuelle (~800-1000 car mesurés sur dossier 6)
+- Ajout du verbatim user d'origine (traçabilité de la décision)
+- Ajout du tableau des cibles par plateforme avec justifications UX
+- Restructuration de la section "Dette technique" en format détaillé (une section par dette au lieu d'un tableau)
