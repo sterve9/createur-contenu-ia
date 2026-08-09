@@ -1,7 +1,7 @@
 # 08 — Project Tracker
 
 > **Point d'entrée officiel du projet Créateur de Contenu IA**  
-> **Dernière mise à jour** : 10 août 2026
+> **Dernière mise à jour** : 09 août 2026
 
 ---
 
@@ -20,15 +20,17 @@ Le Project Tracker pilote l'avancement du projet.
 |---|---|---|---|
 | **V1** | 🟢 STABLE | **100%** | Verrouillée. Tag `v1.0.0-stable` sur GitHub. Aucune modif. |
 | **V2** | 🟢 STABLE | **100%** | End-to-end validée sur 2 scripts distincts. Tag `v2.0.0-stable`. |
-| **V2.1** | 🔵 EN COURS | **~75%** | Frontend Dashboard — S1 Auth ✅ + S2 Liste ✅ + S3 Détail ✅ + S4 Copier ✅. Prochain : S5 (Vue Créer F + webhook n8n). |
+| **V2.1** | 🔵 EN COURS | **~85%** | Frontend Dashboard — S1 Auth ✅ + S2 Liste ✅ + S3 Détail ✅ + S4 Copier ✅ + S5 Créer ✅. Prochain : S6 (Déploiement Vercel). |
+
 ---
+
 ## 🎯 Tâche active
 
-- **ID** : V2.1-S5 (à démarrer)
-- **Titre** : Vue "Créer un dossier" (F) + déclenchement du webhook n8n
+- **ID** : V2.1-S6 (à démarrer)
+- **Titre** : Déploiement Vercel + domaine `dashboard.sterveshop.cloud`
 - **Statut** : ⏳ À DÉMARRER
-- **Séance** : S5 / 7
-- **Objectif** : Créer un formulaire minimal (choix campagne + choix script) qui, à la soumission, déclenche le webhook n8n de démarrage du pipeline V2 et redirige l'utilisateur vers la Vue B (Liste des dossiers).
+- **Séance** : S6 / 7
+- **Objectif** : Déployer le frontend sur Vercel, configurer le domaine personnalisé, vérifier l'auth et le bon fonctionnement en production.
 
 ### ✅ Séances précédentes terminées
 - **V2.1-S1** : Setup Next.js 16 + Supabase Auth Magic Link → 🟢 TERMINÉ le 08/08/2026
@@ -42,6 +44,9 @@ Le Project Tracker pilote l'avancement du projet.
     - `feat(dashboard): add CopyButton component on all copyable blocks`
     - `style(dashboard): use canonical Tailwind class shrink-0`
   - Preuve : ~47 boutons "Copier" fonctionnels sur le dossier 6 (5 narrations + 18 prompts image + 18 prompts animation + 3 descriptions + 3 hashtags) avec feedback visuel "Copié ✓" 2s.
+- **V2.1-S5** : Vue "Créer un dossier" (F) + webhook n8n → 🟢 TERMINÉ le 09/08/2026
+  - Commit : `feat(dashboard): add create dossier view (F) with n8n webhook trigger`
+  - Preuve : Dossier ID 8 créé via le frontend → pipeline complet V2 TERMINE (~4 min) → `user_id` correctement propagé (frontend → n8n → DB)
 
 ---
 
@@ -55,9 +60,25 @@ Le Project Tracker pilote l'avancement du projet.
 | **S2** | Vue "Liste des dossiers" (B) | 🟢 Terminé | 08/08/2026 |
 | **S3** | Vue "Détail d'un dossier" (C) complète | 🟢 Terminé | 09/08/2026 |
 | **S4** | Composant "Copier" (D) intégré partout | 🟢 Terminé | 10/08/2026 |
-| **S5** | Vue "Créer un dossier" (F) + webhook n8n | ⏳ À démarrer | — |
+| **S5** | Vue "Créer un dossier" (F) + webhook n8n | 🟢 Terminé | 09/08/2026 |
 | **S6** | Déploiement Vercel + domaine `dashboard.sterveshop.cloud` | ⏳ Planifié | — |
 | **S7** | Documentation V2.1 + tag `v2.1.0-stable` | ⏳ Planifié | — |
+
+### Micro-étapes S5 réalisées ✅ (récap)
+- ✅ Route `/dashboard/dossiers/nouveau/page.tsx` créée (Server Component)
+- ✅ Server Component lit les scripts (`scripts` table) + les outils actifs (`v2_outils`) depuis Supabase
+- ✅ Composant client `<CreateForm>` avec 3 dropdowns : script + outil image + outil animation
+- ✅ Fonction `extraireApercuScript()` : normalisation de l'affichage des scripts (gère le cas JSON parasité — DT-V2.1-06)
+- ✅ Server Action `creerDossier()` → POST JSON vers webhook n8n V2-ORCH
+- ✅ Payload : `{ script_id, outil_image_id, outil_animation_id, user_id }`
+- ✅ Gestion d'erreur côté client (try/catch + affichage message d'erreur)
+- ✅ Feedback visuel "Création en cours..." pendant le POST
+- ✅ `revalidatePath('/dashboard')` pour rafraîchir la liste après création
+- ✅ Redirection automatique vers `/dashboard` après succès
+- ✅ Auth guard côté serveur (`supabase.auth.getUser()` + `redirect("/login")`)
+- ✅ Bouton "+ Créer un nouveau dossier" ajouté sur la Vue B
+- ✅ Corrections n8n : C-V2-02 (ajout validation `user_id not empty`) + C-V2-05 (INSERT avec `user_id`)
+- ✅ Test E2E : Dossier ID 8 créé → pipeline V2 complet → TERMINE
 
 ### Micro-étapes S4 réalisées ✅ (récap)
 - ✅ Création du composant client réutilisable `<CopyButton text="..." />` (`app/dashboard/dossiers/[id]/copy-button.tsx`)
@@ -75,6 +96,11 @@ Le Project Tracker pilote l'avancement du projet.
 **Contexte** : le pipeline V2 produit plusieurs champs par plan/scène (`ambiance_visuelle`, `description_visuelle`, `parametres_recommandes`) qui ne sont pas directement copiés par l'utilisateur dans ses outils IA.  
 **Décision** : la Vue C n'affiche **que les champs actionnables** : narration (voix off), prompt image, prompt animation, descriptions par plateforme.  
 **Justification** : cohérent avec §7 du besoin V2.1 → *"UX orientée copie rapide : passer d'un dossier à ses outils en < 30 secondes"*. Les champs non affichés sont conservés en base (aucune suppression DB).
+
+### DP-V2.1-02 — Vue F : 3 dropdowns avec choix multi-outils (S5)
+**Contexte** : le pipeline V2 génère des prompts adaptés à chaque outil (Midjourney ≠ Playground AI, Kling AI ≠ Runway). Le user a besoin de comparer les résultats de la même production avec des outils différents.  
+**Décision** : la Vue F propose **3 dropdowns** : script + outil image + outil animation. Les outils sont lus depuis la table `v2_outils` (filtre `actif=true`). Le `user_id` de l'utilisateur connecté est ajouté au payload webhook.  
+**Justification** : préserve le cas d'usage principal (comparaison d'outils), prépare le multi-user (propagation `user_id`), aligné avec ADR-V2-07 (conventions d'outils par catégorie).
 
 ---
 
@@ -94,12 +120,17 @@ Le Project Tracker pilote l'avancement du projet.
 | **V2-ANIM** | C-V2-16 → C-V2-18 (7 nœuds) | ✅ Terminé | 10/08/2026 |
 | **V2-PUB** | C-V2-20 → C-V2-22 (7 nœuds) | ✅ Terminé | 10/08/2026 |
 
+**Modifications n8n en S5** :
+- C-V2-02 : ajout condition `user_id not empty`
+- C-V2-05 : ajout colonne `user_id` dans le INSERT SQL
+
 ### 4. Tests end-to-end (100% ✅)
 
 | Test | dossier_id | script_id | Sujet | Statut final | Durée |
 |---|---|---|---|---|---|
 | Test 1 | 5 | 13 | Intelligence Artificielle | ✅ TERMINE | Fragmenté |
 | **Test 2 (E2E complet)** | **6** | **18** | **Productivité au travail** | **✅ TERMINE** | **~4m34s** |
+| **Test 3 (via Vue F)** | **8** | **26** | **Productivité au travail** | **✅ TERMINE** | **~4 min** |
 
 ---
 
@@ -134,6 +165,7 @@ Le Project Tracker pilote l'avancement du projet.
 | **08/08/2026** | ✅ **V2.1-S2 terminée** | **Vue B Liste des dossiers opérationnelle avec RLS.** |
 | **09/08/2026** | ✅ **V2.1-S3 terminée** | **Vue C Détail dossier complète : hiérarchie scènes → plans → prompts image/animation + descriptions par plateforme. Navigation Vue B → Vue C fonctionnelle. Décision produit DP-V2.1-01 (affichage minimaliste) actée.** |
 | **10/08/2026** | ✅ **V2.1-S4 terminée** | **Composant `<CopyButton />` réutilisable + intégration sur tous les blocs copiables de la Vue C (~47 boutons). UX de copie rapide alignée avec le besoin §7.** |
+| **09/08/2026** | ✅ **V2.1-S5 terminée** | **Vue F "Créer un dossier" + Server Action → webhook n8n V2-ORCH. Payload {script_id, outil_image_id, outil_animation_id, user_id}. Test E2E réussi (dossier 8). Bouton "+ Créer" ajouté sur Vue B. Décision produit DP-V2.1-02 (3 dropdowns multi-outils) actée.** |
 
 ---
 
@@ -221,16 +253,47 @@ Modifier les prompts système des nœuds suivants dans le bloc V2-PUB :
 
 ---
 
+### DT-V2.1-05 — Tables `campagnes` et `scripts` sans `user_id`
+- **Origine** : V2.1-S5 (identifié lors de la lecture des scripts/outils pour la Vue F)
+- **Priorité** : Moyenne
+- **Résolution prévue** : Avant multi-user (V2.2+)
+
+**Description** : les tables `campagnes` et `scripts` n'ont **pas de colonne `user_id`** et ont RLS disabled. Elles sont globales/shared.
+
+**Risque** : en multi-user, tous les utilisateurs verront toutes les campagnes et tous les scripts (pas de scoping par user).
+
+**Action** :
+- Ajouter colonne `user_id` (UUID, nullable en migration) + FK sur `auth.users(id)`
+- Activer RLS + policies (SELECT/INSERT/UPDATE/DELETE) basées sur `user_id`
+- Attention : le pipeline n8n (service_role) bypass RLS, pas d'impact côté backend
+
+---
+
+### DT-V2.1-06 — Champ `scripts.script` incohérent (JSON vs texte brut)
+- **Origine** : V2.1-S5 (visible lors de l'affichage des scripts dans le `<select>` de la Vue F)
+- **Priorité** : Basse
+- **Résolution prévue** : Post-V2.1
+
+**Description** : le champ `scripts.script` contient parfois du texte brut, parfois du JSON encapsulé dans des balises markdown (` ```json { "script": "..." } ``` `). Résultat : l'affichage dans le dropdown est incohérent.
+
+**Observation factuelle** :
+- Scripts 18, 19, 20, 21, 22, 24, 25, 27 → texte brut ✅
+- Scripts 1, 2, 11, 15, 23, 26 → JSON avec balises markdown ❌
+
+**Solution frontend temporaire** (appliquée en S5) : fonction `extraireApercuScript()` qui détecte le JSON et extrait le champ `"script"` à l'affichage. **Ne corrige pas la cause racine.**
+
+**Action à réaliser** : normaliser la génération dans le workflow n8n amont (nœud V1 qui produit les scripts). S'assurer que la sortie est toujours du texte brut sans encapsulation JSON.
+
+---
+
 ## 🧭 Prochaine séance
 
-**Séance 6 — V2.1 (S5 : Vue "Créer un dossier" F + webhook n8n)**
+**Séance 7 — V2.1 (S6 : Déploiement Vercel + domaine)**
 
-- **Objectif prioritaire** : construire le formulaire de création d'un nouveau dossier (choix campagne + choix script) qui, à la soumission, déclenche le webhook n8n de démarrage du pipeline V2, puis redirige vers la Vue B.
+- **Objectif prioritaire** : déployer le frontend sur Vercel, configurer le domaine personnalisé `dashboard.sterveshop.cloud`, vérifier que l'auth Magic Link fonctionne en production.
 - **Prérequis technique** :
-  - Server Action ou Route Handler Next.js (à décider en séance)
-  - URL du webhook n8n V2-ORCH à récupérer
-  - Lecture des campagnes disponibles (à confirmer : y a-t-il une table `v2_campagnes` scopée user ?)
-  - Lecture des scripts disponibles (à confirmer : structure de la table `scripts`)
-- **⚠️ Prérequis DB à valider en début de séance** : screenshot Supabase des tables `campagnes` et `scripts` (règle zéro invention DB).
-- **Documents à ouvrir** : `08_Project_Tracker.md`, `01.V2.1_Besoin_Client.md` (§5 Vue F).
-- **Critère de fin** : à partir de la Vue A/B, l'utilisateur peut créer un nouveau dossier, le webhook n8n est déclenché, un nouveau dossier apparaît dans la liste avec statut initial "en cours" + commit + push GitHub.
+  - Compte Vercel connecté au repo GitHub `createur-contenu-ia-dashboard`
+  - Variables d'environnement Supabase configurées dans Vercel
+  - DNS `dashboard.sterveshop.cloud` prêt à pointer vers Vercel
+- **Documents à ouvrir** : `08_Project_Tracker.md`, `01.V2.1_Besoin_Client.md` (§6 Déploiement).
+- **Critère de fin** : le dashboard est accessible sur `https://dashboard.sterveshop.cloud`, l'auth Magic Link fonctionne, le bouton "+ Créer un dossier" déclenche le pipeline n8n, commit + push GitHub.
