@@ -1,7 +1,7 @@
 # 08 — Project Tracker
 
 > **Point d'entrée officiel du projet Créateur de Contenu IA**  
-> **Dernière mise à jour** : 09 août 2026
+> **Dernière mise à jour** : 10 août 2026
 
 ---
 
@@ -18,19 +18,19 @@ Le Project Tracker pilote l'avancement du projet.
 
 | Version | Statut | Progression | Description |
 |---|---|---|---|
-| **V1** | 🟢 STABLE | **100%** | Verrouillée. Tag `v1.0.0-stable` sur GitHub. Aucune modif. Workflow n8n `lancer-campagne` documenté en fin S5. |
+| **V1** | 🟢 STABLE | **100%** | Verrouillée. Tag `v1.0.0-stable` sur GitHub. Aucune modif. Workflow n8n `lancer-campagne` documenté + migré user_id en S6. |
 | **V2** | 🟢 STABLE | **100%** | End-to-end validée sur 3 scripts distincts. Tag `v2.0.0-stable`. |
-| **V2.1** | 🔵 EN COURS | **~70%** | Frontend Dashboard — S1 Auth ✅ + S2 Liste dossiers ✅ + S3 Détail ✅ + S4 Copier ✅ + S5 Créer dossier ✅. Prochain : S6 (Vue Créer Campagne — déclenchement V1). Plan élargi à 9 séances suite à la découverte fin S5. |
+| **V2.1** | 🔵 EN COURS | **~90%** | Frontend Dashboard — S1 Auth ✅ + S2 Liste dossiers ✅ + S3 Détail ✅ + S4 Copier ✅ + S5 Créer dossier ✅ + S6 Créer campagne ✅ + S7 Liste campagnes ✅. Prochain : S8 (Vercel deployment). Plan initial 7 → 9 séances, S6+S7 fusionnées (Q2 Option B). |
 
 ---
 
 ## 🎯 Tâche active
 
-- **ID** : V2.1-S6 (à démarrer)
-- **Titre** : Vue "Créer une campagne" (E) + déclenchement webhook V1 `lancer-campagne`
+- **ID** : V2.1-S8 (à démarrer)
+- **Titre** : Déploiement Vercel + domaine `dashboard.sterveshop.cloud`
 - **Statut** : ⏳ À DÉMARRER
-- **Séance** : S6 / 9
-- **Objectif** : Créer un formulaire minimal (sujet, plateforme, langue, nb_resultats) qui déclenche le pipeline V1 pour générer de nouveaux scripts, disponibles ensuite dans la Vue F (créer un dossier V2).
+- **Séance** : S8 / 9
+- **Objectif** : Déployer le dashboard Next.js 16 sur Vercel, configurer le domaine custom, vérifier l'auth + RLS en prod.
 
 ### 🚨 CONTEXTE DÉCOUVERTE FIN S5 (à lire absolument)
 
@@ -39,7 +39,10 @@ Le Project Tracker pilote l'avancement du projet.
 
 **Découverte** : jusqu'en fin S5, le dashboard permettait uniquement de **transformer** un script existant en dossier V2 (Vue F). Mais aucune interface ne permettait de **générer** ces scripts amont via le workflow V1 `lancer-campagne`.
 
-**Décision produit DP-V2.1-03** : élargir le périmètre V2.1 pour couvrir aussi le déclenchement V1 avant tout déploiement. Nouveau plan de 9 séances (au lieu de 7).
+**Décision produit DP-V2.1-03** : élargir le périmètre V2.1 pour couvrir aussi le déclenchement V1 avant tout déploiement. 
+- **Vue E** : formulaire "Créer une campagne" → webhook `lancer-campagne`
+- **Vue G** : liste des campagnes avec statuts + navigation vers Vue F  
+**Résolution** : ✅ S6+S7 faites en une séance dense (10/08/2026).
 
 ### ✅ Séances précédentes terminées
 - **V2.1-S1** : Setup Next.js 16 + Supabase Auth Magic Link → 🟢 TERMINÉ le 08/08/2026
@@ -54,15 +57,22 @@ Le Project Tracker pilote l'avancement du projet.
 - **V2.1-S5** : Vue "Créer un dossier" (F) + webhook n8n V2-ORCH → 🟢 TERMINÉ le 09/08/2026
   - Commits : 
     - `feat(dashboard): add create dossier view (F) with n8n webhook trigger`
-    - `docs(tracker): close V2.1-S5 + define S6 (Vercel deployment)` *(à remplacer par le commit actuel)*
   - Preuve : Dossier ID 8 créé via le frontend → pipeline complet V2 TERMINE (~4 min) → `user_id` correctement propagé.
-  - **Découverte fin de séance** : nécessité d'ajouter le déclenchement V1 avant déploiement (voir contexte ci-dessus).
+- **V2.1-S6** : Vue "Créer une campagne" (E) + webhook n8n V1 `lancer-campagne` + migration `campagnes.user_id` → 🟢 TERMINÉ le 10/08/2026
+  - Décisions séance : Q1 Option A (propre, ajouter user_id maintenant) + Q2 Option B (faire E+G ensemble)
+  - Migration DB : `ALTER TABLE campagnes ADD COLUMN user_id uuid REFERENCES auth.users(id)` + index + RLS + 2 policies
+  - Modifs n8n V1 : `Valider Paramètres` (5ème condition user_id) + `Créer Campagne` (ajout user_id, suppression nb_contenus_total/traites)
+  - Commits : `feat(dashboard): add campagnes views (E create + G list) with V1 webhook trigger and user_id propagation`
+  - Preuve : Campagnes 17 (Test PS via PowerShell) et 18 (Test Formulaire React via UI) créées avec user_id `f8e77d8b-3d54-4937-9302-4a920d48bd6e` → TERMINEE 1/1 et 2/2
+- **V2.1-S7** : Vue "Liste des campagnes" (G) + affichage statuts + navigation → 🟢 TERMINÉ le 10/08/2026 (fusionné avec S6)
+  - Route `/dashboard/campagnes` + badge statut coloré + progression X/Y + RLS auto-filtrée (2 lignes sur 19 affichées)
+  - Ajout bouton "📋 Voir mes campagnes" sur Vue B
 
 ---
 
 ## 🚦 État d'avancement détaillé V2.1
 
-### Séances V2.1 (plan révisé à 9 séances)
+### Séances V2.1 (plan révisé à 9 séances, S6+S7 fusionnées)
 
 | Séance | Livrable | Statut | Date |
 |---|---|---|---|
@@ -71,9 +81,9 @@ Le Project Tracker pilote l'avancement du projet.
 | **S3** | Vue "Détail d'un dossier" (C) complète | 🟢 Terminé | 09/08/2026 |
 | **S4** | Composant "Copier" (D) intégré partout | 🟢 Terminé | 10/08/2026 |
 | **S5** | Vue "Créer un dossier V2" (F) + webhook n8n V2-ORCH | 🟢 Terminé | 09/08/2026 |
-| **S6** | Vue "Créer une campagne" (E) + webhook n8n V1 `lancer-campagne` | ⏳ À démarrer | — |
-| **S7** | Vue "Liste des campagnes" (G) + affichage statuts + navigation vers Vue F | ⏳ Planifié | — |
-| **S8** | Déploiement Vercel + domaine `dashboard.sterveshop.cloud` | ⏳ Planifié | — |
+| **S6** | Vue "Créer une campagne" (E) + webhook n8n V1 `lancer-campagne` + migration user_id | 🟢 Terminé | 10/08/2026 |
+| **S7** | Vue "Liste des campagnes" (G) + affichage statuts + navigation vers Vue F | 🟢 Terminé (fusion S6) | 10/08/2026 |
+| **S8** | Déploiement Vercel + domaine `dashboard.sterveshop.cloud` | ⏳ À démarrer | — |
 | **S9** | Documentation V2.1 + tag `v2.1.0-stable` | ⏳ Planifié | — |
 
 ### Micro-étapes S5 réalisées ✅ (récap)
@@ -86,6 +96,17 @@ Le Project Tracker pilote l'avancement du projet.
 - ✅ Modifications n8n : C-V2-02 (validation `user_id`) + C-V2-05 (INSERT `user_id`)
 - ✅ Bouton "+ Créer un nouveau dossier" ajouté sur Vue B
 - ✅ Test E2E : Dossier ID 8 → pipeline complet V2 TERMINE
+
+### Micro-étapes S6+S7 réalisées ✅ (campagnes)
+- ✅ Migration DB `campagnes` : add `user_id uuid NULL REFERENCES auth.users(id)` + index + RLS ENABLE + 2 policies (SELECT/INSERT)
+- ✅ Modification workflow V1 `lancer-campagne` : `Valider Paramètres` (condition user_id is not empty) + `Créer Campagne` (mapping user_id + suppression nb_contenus_total/traites)
+- ✅ Test manuel webhook via `Invoke-RestMethod` PowerShell → campagne 17 OK
+- ✅ Route `/dashboard/campagnes/nouveau/page.tsx` (Server Component auth only + userId)
+- ✅ Client Component `<CreateForm>` : 4 champs (sujet text + plateforme select YouTube only + langue select fr/en + nb_resultats number 1-10)
+- ✅ Server Action `creerCampagne()` → POST webhook `lancer-campagne` payload `{ sujet, plateforme, langue, nb_resultats, user_id }`
+- ✅ Test E2E formulaire → campagne 18 (2/2) TERMINEE
+- ✅ Route `/dashboard/campagnes/page.tsx` (Server Component) + requête RLS `select id, sujet, plateforme, langue, nb_resultats, statut, nb_contenus_total, nb_contenus_traites, created_at` + badges statut + état vide
+- ✅ Modification `app/dashboard/page.tsx` : ajout bouton "📋 Voir mes campagnes" (bg-purple-600)
 
 ---
 
@@ -104,44 +125,60 @@ Le Project Tracker pilote l'avancement du projet.
 - **Vue G** : liste des campagnes avec statuts + navigation vers Vue F  
 **Justification** : un utilisateur ne peut pas être livré un dashboard où la moitié du pipeline (V1) est déclenchable uniquement depuis n8n en interne.
 
+### DP-V2.1-04 — Plateforme YouTube uniquement en Vue E (S6)
+**Contexte** : le workflow V1 `lancer-campagne` ne collecte que YouTube (nœud `Collecte des contenus` = YouTube API).  
+**Décision** : le select plateforme en Vue E n'affiche que `YouTube` avec message "TikTok et Instagram seront disponibles prochainement".  
+**Justification** : honnêteté produit vs backend réel. Éviter de livrer un formulaire qui ment.
+
 ---
 
-## 🔧 Architecture des workflows n8n (référence — documenté en fin S5)
+## 🔧 Architecture des workflows n8n (référence — documenté en fin S5, MAJ S6)
 
 ### Workflow V1 — `lancer-campagne`
 **Webhook** : `POST https://automation.sterveshop.cloud/webhook/lancer-campagne`
 
-**Payload attendu** :
+**Payload attendu (MAJ S6)** :
 ```json
 {
   "sujet": "Productivité au travail",
   "plateforme": "YouTube",
   "langue": "fr",
-  "nb_resultats": 5
+  "nb_resultats": 5,
+  "user_id": "uuid-auth-user"
 }
-Pipeline : voir bloc "État d'avancement détaillé V2" ci-dessous.
+Modifications S6 : validation user_id + INSERT user_id + RLS active.
+Durée : ~30s à ~2min selon nb_resultats.
+Workflow V2 — v2-creer-dossier
+Webhook : POST https://automation.sterveshop.cloud/webhook/v2-creer-dossier
+Payload : { script_id, outil_image_id, outil_animation_id, user_id }
 
+Modifications S5 : C-V2-02 (validation user_id) + C-V2-05 (INSERT user_id)
 Durée : ~4 min.
-
 🚦 État d'avancement détaillé V2 (rappel)
-1. Conception & Documentation V2 (100% ✅)
-2. Base de Données Supabase V2 (100% ✅)
-3. Workflows n8n V2 (100% ✅)
-Bloc n8n	Nœuds	Statut	Date
-V2-ERR	Workflow séparé	✅ Terminé	06/08/2026
-V2-ORCH	C-V2-01 → C-V2-05b	✅ Terminé	07/08/2026
-V2-SCENE	C-V2-06 → C-V2-08	✅ Terminé	08/08/2026
-V2-PLAN	C-V2-09 → C-V2-11b	✅ Terminé	08/08/2026
-V2-IMG	C-V2-13 → C-V2-15e (7 nœuds)	✅ Terminé	09/08/2026
-V2-ANIM	C-V2-16 → C-V2-18 (7 nœuds)	✅ Terminé	10/08/2026
-V2-PUB	C-V2-20 → C-V2-22 (7 nœuds)	✅ Terminé	10/08/2026
-Modifications n8n en S5 : C-V2-02 (validation user_id) + C-V2-05 (INSERT user_id).
 
-4. Tests end-to-end (100% ✅)
-Test	dossier_id	script_id	Sujet	Statut final	Durée
-Test 1	5	13	Intelligence Artificielle	✅ TERMINE	Fragmenté
-Test 2 (E2E complet)	6	18	Productivité au travail	✅ TERMINE	~4m34s
-Test 3 (via Vue F)	8	26	Productivité au travail	✅ TERMINE	~4 min
+Conception & Documentation V2 (100% ✅)
+
+Base de Données Supabase V2 (100% ✅)
+
+Workflows n8n V2 (100% ✅)
+Bloc n8n Nœuds Statut Date
+V2-ERR Workflow séparé ✅ Terminé 06/08/2026
+V2-ORCH C-V2-01 → C-V2-05b ✅ Terminé 07/08/2026
+V2-SCENE C-V2-06 → C-V2-08 ✅ Terminé 08/08/2026
+V2-PLAN C-V2-09 → C-V2-11b ✅ Terminé 08/08/2026
+V2-IMG C-V2-13 → C-V2-15e (7 nœuds) ✅ Terminé 09/08/2026
+V2-ANIM C-V2-16 → C-V2-18 (7 nœuds) ✅ Terminé 10/08/2026
+V2-PUB C-V2-20 → C-V2-22 (7 nœuds) ✅ Terminé 10/08/2026
+Modifications n8n en S5 : C-V2-02 (validation user_id) + C-V2-05 (INSERT user_id).
+Modifications n8n en S6 : V1 Valider Paramètres + Créer Campagne (user_id).
+
+Tests end-to-end (100% ✅)
+Test dossier_id / campagne_id sujet Statut final Durée
+Test 1 V2 5 Intelligence Artificielle ✅ TERMINE Fragmenté
+Test 2 V2 (E2E complet) 6 Productivité au travail ✅ TERMINE ~4m34s
+Test 3 V2 (via Vue F) 8 Productivité au travail ✅ TERMINE ~4 min
+Test 1 V1 (cURL PS) 17 Test PS ✅ TERMINEE 1/1 ~30s
+Test 2 V1 (Vue E) 18 Test Formulaire React ✅ TERMINEE 2/2 ~1min
 🧠 Décisions d'Architecture Actées (ADR Summary)
 ADR-V2-01 : Hiérarchie de vérité documentaire (Supabase > V2-010 > V2-008).
 ADR-V2-02 : Orchestration monolithique.
@@ -151,22 +188,23 @@ ADR-V2-05 : Cardinalité 1-item garantie par bloc.
 ADR-V2-06 : Barrières Aggregate + .first().
 ADR-V2-07 : Fusion des conventions d'outils dans le SELECT amont.
 📈 Historique des Jalons
-Date	Événement / Jalon	Impact
-03/08/2025	🎉 V1 STABLE Livrée	Baseline V1 verrouillée.
-04/08/2025	📐 Conception V2 Terminée	12 documents produits.
-04/08/2026	🛠️ Infrastructure V2 posée	DDL + Catalogue + V2-ERR.
-05/08/2026	🚀 V2-ORCH Opérationnel	Bloc initial testé.
-05/08/2026	🎬 V2-SCENE & V2-PLAN Opérationnels	5 scènes + 18 plans générés.
-06/08/2026	🖼️ V2-IMG Opérationnel	18 prompts image + ADR-V2-07 formalisé.
-06/08/2026	🎥 V2-ANIM Opérationnel	18 prompts animations Kling AI.
-07/08/2026	🎯 V2-PUB Opérationnel	3 descriptions plateformes + clôture dossier.
-07/08/2026	🏆 V2 STABLE — Test E2E complet réussi	Dossier 6 : pipeline complet en 4m34s. Tag v2.0.0-stable.
-08/08/2026	✅ V2.1-S1 terminée	Auth Magic Link opérationnelle end-to-end.
-08/08/2026	✅ V2.1-S2 terminée	Vue B Liste des dossiers opérationnelle avec RLS.
-09/08/2026	✅ V2.1-S3 terminée	Vue C Détail dossier complète. DP-V2.1-01 actée.
-10/08/2026	✅ V2.1-S4 terminée	Composant <CopyButton /> + intégration sur tous les blocs (~47 boutons).
-09/08/2026	✅ V2.1-S5 terminée	Vue F "Créer un dossier V2" + webhook n8n V2-ORCH. Dossier 8 créé E2E. DP-V2.1-02 actée.
-09/08/2026	🔍 Découverte fin S5	Élargissement périmètre V2.1 : ajout de 2 séances (S6 Vue E + S7 Vue G) pour intégrer aussi V1 avant déploiement. Plan de 7 → 9 séances. DP-V2.1-03 actée.
+Date Événement / Jalon Impact
+03/08/2025 🎉 V1 STABLE Livrée Baseline V1 verrouillée.
+04/08/2025 📐 Conception V2 Terminée 12 documents produits.
+04/08/2026 🛠️ Infrastructure V2 posée DDL + Catalogue + V2-ERR.
+05/08/2026 🚀 V2-ORCH Opérationnel Bloc initial testé.
+05/08/2026 🎬 V2-SCENE & V2-PLAN Opérationnels 5 scènes + 18 plans générés.
+06/08/2026 🖼️ V2-IMG Opérationnel 18 prompts image + ADR-V2-07 formalisé.
+06/08/2026 🎥 V2-ANIM Opérationnel 18 prompts animations Kling AI.
+07/08/2026 🎯 V2-PUB Opérationnel 3 descriptions plateformes + clôture dossier.
+07/08/2026 🏆 V2 STABLE — Test E2E complet réussi Dossier 6 : pipeline complet en 4m34s. Tag v2.0.0-stable.
+08/08/2026 ✅ V2.1-S1 terminée Auth Magic Link opérationnelle end-to-end.
+08/08/2026 ✅ V2.1-S2 terminée Vue B Liste des dossiers opérationnelle avec RLS.
+09/08/2026 ✅ V2.1-S3 terminée Vue C Détail dossier complète. DP-V2.1-01 actée.
+10/08/2026 ✅ V2.1-S4 terminée Composant <CopyButton /> + intégration sur tous les blocs (~47 boutons).
+09/08/2026 ✅ V2.1-S5 terminée Vue F "Créer un dossier V2" + webhook n8n V2-ORCH. Dossier 8 créé E2E. DP-V2.1-02 actée.
+09/08/2026 🔍 Découverte fin S5 Élargissement périmètre V2.1 : ajout de 2 séances (S6 Vue E + S7 Vue G) pour intégrer aussi V1 avant déploiement. Plan de 7 → 9 séances. DP-V2.1-03 actée.
+10/08/2026 ✅ V2.1-S6+S7 terminées Vue E + Vue G + migration campagnes user_id + modifs workflow V1. Campagnes 17-18 créées via frontend avec RLS. DT-V2.1-07 résolue.
 📂 Documents de référence
 08_Project_Tracker.md (ce document)
 01.V2.1_Besoin_Client.md (périmètre V2.1, §5 vues MVP)
@@ -181,34 +219,37 @@ Priorité : Basse
 Résolution prévue : Post-V2.1
 Description : Next.js 16 déprécie middleware au profit de proxy.
 Action : npx @next/codemod@canary middleware-to-proxy .
+
 DT-V2.1-02 — Descriptions générées trop longues pour être exploitables
 Origine : V2.1-S3
 Priorité : Moyenne
 Résolution prévue : Post-V2.1 (retour V2-PUB)
 Cibles :
 
-Plateforme	Cible
-TikTok	~300 car
-Instagram Reels	~125 car
-YouTube Shorts	~150 car
+Plateforme Cible
+TikTok ~300 car
+Instagram Reels ~125 car
+YouTube Shorts ~150 car
 Nœuds à modifier : C-V2-20 (TikTok), C-V2-21 (YouTube), C-V2-22 (Instagram).
 
 DT-V2.1-03 — Champs pipeline non affichés dans la Vue C
 Origine : V2.1-S3 (DP-V2.1-01)
 Priorité : Basse
 Résolution prévue : V3+
+
 DT-V2.1-04 — RLS désactivée sur les tables enfants V2
 Origine : V2.1-S3
 Priorité : Moyenne
 Résolution prévue : Avant multi-user (V2.2+)
 Tables : v2_scenes, v2_plans, v2_prompts_images, v2_prompts_animations, v2_descriptions_publication.
 
-DT-V2.1-05 — Tables campagnes et scripts sans user_id
+DT-V2.1-05 — Tables campagnes et scripts sans user_id (partiellement résolu)
 Origine : V2.1-S5
 Priorité : Moyenne
-Résolution prévue : Avant multi-user (V2.2+) — OU en S6 selon décision Q1
-Description : les tables campagnes, contenus, analyses, scripts n'ont pas de user_id (RLS disabled). Tables globales.
-Question ouverte pour S6 : ajouter user_id maintenant (Option A, propre) ou reporter (Option B, rapide) ?
+Résolution prévue : V2.2 pour contenus/analyses/scripts
+Description : les tables campagnes, contenus, analyses, scripts n'avaient pas de user_id (RLS disabled).
+MAJ 10/08/2026 : campagnes ✅ migrée (user_id + RLS). Reste contenus, analyses, scripts globaux (OK pour MVP mono-user, à corriger en V2.2).
+
 DT-V2.1-06 — Champ scripts.script incohérent (JSON vs texte brut)
 Origine : V2.1-S5
 Priorité : Basse
@@ -216,17 +257,13 @@ Résolution prévue : Post-V2.1
 Cause : le nœud "Normalisation Script IA" du workflow V1 fait parfois un JSON.parse réussi (texte brut) et parfois échoue (renvoie du JSON encapsulé).
 Fix temporaire (S5) : fonction extraireApercuScript() côté frontend.
 Fix cible : sécuriser le nœud "Normalisation Script IA" pour toujours renvoyer du texte brut.
-DT-V2.1-07 — V1 sans user_id (multi-user impossible) 🆕 identifiée en fin S5
+
+DT-V2.1-07 — V1 sans user_id (multi-user impossible) ✅ RÉSOLU 10/08/2026
 Origine : V2.1-S5 (analyse du workflow V1 lancer-campagne)
 Priorité : Moyenne
-Résolution prévue : S6 (à discuter en début de séance) ou V2.2
-Description : le workflow V1 lancer-campagne crée des campagnes sans user_id. Impact identique à DT-V2.1-05 mais concerne le pipeline amont.
-Action à réaliser (si Option A retenue en S6) :
-Ajouter colonne user_id sur campagnes (migration DB)
-Modifier nœud "Valider Paramètres" pour valider user_id
-Modifier nœud "Créer Campagne" pour insérer user_id
-Frontend : Server Action Vue E passe user_id dans le payload
-DT-V2.1-08 — Pas de mécanisme de polling / notification de fin de pipeline 🆕 identifiée en fin S5
+Résolution : 10/08/2026 — Migration campagnes.user_id + policies RLS + modif workflow V1 (Valider Paramètres + Créer Campagne) + envoi user_id depuis frontend. Test E2E OK (campagnes 17-18).
+
+DT-V2.1-08 — Pas de mécanisme de polling / notification de fin de pipeline
 Origine : V2.1-S5 (analyse du comportement webhook async)
 Priorité : Moyenne
 Résolution prévue : Post-V2.1 (V2.2+)
@@ -235,17 +272,18 @@ Solutions possibles :
 Option 1 : polling automatique côté client (setInterval sur /dashboard)
 Option 2 : Supabase Realtime sur les tables campagnes et v2_dossiers_production
 Option 3 : notification email/push quand la campagne/dossier est TERMINE
-Mitigation temporaire S7 : la Vue G (liste campagnes) affichera au moins le statut EN_COURS / TERMINEE lors du chargement de la page.
-🧭 Prochaine séance
-Séance 6 — V2.1 (S6 : Vue "Créer une campagne" E + webhook V1 lancer-campagne)
+Mitigation temporaire S7 : Vue G affiche statut EN_COURS / TERMINEE lors du chargement de la page.
 
-Objectif prioritaire : formulaire minimal (sujet, plateforme, langue, nb_resultats) qui déclenche V1.
-Prérequis technique :
-Server Action Next.js (même pattern que S5)
-URL webhook : https://automation.sterveshop.cloud/webhook/lancer-campagne
-Payload : { sujet, plateforme, langue, nb_resultats } (+ éventuellement user_id selon décision)
-⚠️ Décision produit à prendre en début de séance :
-Q1 : Ajouter user_id à campagnes maintenant (Option A propre) ou reporter en V2.2 (Option B rapide) ?
-Q2 : Faire aussi la Vue G (liste campagnes) dans la même séance ou la reporter à S7 ?
-Documents à ouvrir : 08_Project_Tracker.md, 01.V2.1_Besoin_Client.md (§5).
-Critère de fin : depuis le dashboard, l'utilisateur peut créer une campagne, elle se déclenche en n8n, et 5 nouveaux scripts apparaissent dans la Vue F au bout de ~2 min. Commit + push GitHub.
+🧭 Prochaine séance
+Séance 8 — V2.1 (S8 : Déploiement Vercel + domaine dashboard.sterveshop.cloud)
+
+Objectif : déployer le dashboard, vérifier Magic Link en prod, RLS, webhooks prod.
+Prérequis :
+
+Compte Vercel lié au repo GitHub createur-contenu-ia-dashboard
+Variables ENV Supabase configurées sur Vercel
+Domaine dashboard.sterveshop.cloud à configurer
+Documents à ouvrir : 08_Project_Tracker.md, 01.V2.1_Besoin_Client.md.
+Critère de fin : dashboard accessible en prod via URL custom, login OK, création campagne E2E OK.
+
+
