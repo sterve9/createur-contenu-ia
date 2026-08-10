@@ -323,23 +323,43 @@ Modifications n8n en S6 : V1 Valider Paramètres + Créer Campagne (user_id).
 - **Description** : le CNAME `dashboard` pointe vers `cname.vercel-dns.com` (format legacy). Vercel recommande `a16b628326eee6c7.vercel-dns-017.com` (badge "DNS Change Recommended" non bloquant). Le legacy continue de fonctionner officiellement.
 
 ---
+## 🧭 Prochaine version — V2.2
 
-### 🧭 Prochaine séance
+### 🎯 Thème directeur
+> **"Rendre le dashboard vraiment utilisable au quotidien"**  
+> Focus : UX du pipeline + fiabilité multi-user + qualité des livrables.  
+> Aucune nouvelle fonctionnalité — uniquement résolution des dettes techniques MUST + SHOULD.
 
-**Séance 1 — V2.2 (à cadrer)**
+### 📌 Priorités actées
 
-**Contexte** : V2.1 est officiellement stable (tag `v2.1.0-stable` du 10/08/2026).  
-La prochaine version se concentrera sur la **résolution des dettes techniques prioritaires** et l'amélioration de l'expérience utilisateur du pipeline.
+**🟥 MUST** — impact UX direct
+- DT-V2.1-09 — Vue F : afficher le contexte campagne dans les scripts
+- DT-V2.1-08 — Suivi de fin de pipeline (polling ou Supabase Realtime)
 
-**Priorités pressenties pour V2.2** :
-1. **DT-V2.1-09** — Vue F : afficher le contexte campagne dans le dropdown scripts.
-2. **DT-V2.1-08** — Mécanisme de polling / notification de fin de pipeline (Supabase Realtime probable).
-3. **DT-V2.1-04** — Activer la RLS sur les tables enfants V2.
-4. **DT-V2.1-05** — Ajouter `user_id` sur `contenus`, `analyses`, `scripts` (multi-user).
+**🟨 SHOULD** — dette sérieuse
+- DT-V2.1-04 — RLS enfants V2
+- DT-V2.1-05 — `user_id` sur contenus / analyses / scripts
+- DT-V2.1-02 — Descriptions V2-PUB trop longues (nœuds C-V2-20/21/22)
 
-**Documents à ouvrir en début de cadrage** :
+**🟩 COULD** — reportées à V2.3+
+- DT-V2.1-01, DT-V2.1-03, DT-V2.1-06, DT-V2.1-10
+
+### 🗓️ Plan de séances V2.2 (prévisionnel — ~5 séances)
+
+| Séance | Objectif |
+|---|---|
+| **S1** | DT-V2.1-09 — Refonte Vue F avec contexte campagne |
+| **S2** | DT-V2.1-08 — Suivi de fin de pipeline (Realtime probable) |
+| **S3** | DT-V2.1-04 + DT-V2.1-05 — Multi-user complet (RLS + user_id V1) |
+| **S4** | DT-V2.1-02 — Fix descriptions V2-PUB en n8n |
+| **S5** | Tests E2E + tag `v2.2.0-stable` |
+
+### 📂 Documents à ouvrir en début de S1 V2.2
 - `08_Project_Tracker.md`
 - `06.V2_Journal_des_Decisions_d_Architecture.md`
-- `01.V2.1_Besoin_Client.md` (relecture pour V2.2)
+- `01.V2.1_Besoin_Client.md` (référentiel UX)
 
-**Critère de fin du cadrage V2.2** : Project Tracker mis à jour avec le plan de séances V2.2 et sa première tâche active.
+### ✅ Critère de démarrage V2.2
+- V2.1 tag `v2.1.0-stable` publié ✅ (10/08/2026)
+- Prod stable, aucune régression signalée ✅
+- Cadrage V2.2 validé ✅ (fin S9, 10/08/2026)
