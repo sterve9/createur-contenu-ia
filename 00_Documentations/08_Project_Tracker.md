@@ -20,17 +20,17 @@ Le Project Tracker pilote l'avancement du projet.
 |---|---|---|---|
 | **V1** | 🟢 STABLE | **100%** | Verrouillée. Tag `v1.0.0-stable` sur GitHub. Aucune modif. Workflow n8n `lancer-campagne` documenté + migré user_id en S6. |
 | **V2** | 🟢 STABLE | **100%** | End-to-end validée sur 3 scripts distincts. Tag `v2.0.0-stable`. |
-| **V2.1** | 🔵 EN COURS | **~95%** | Frontend Dashboard — S1-S8 ✅ (dont S8 Déploiement Vercel + domaine custom). Prochain : S9 (Documentation + tag `v2.1.0-stable`). Plan initial 7 → 9 séances, S6+S7 fusionnées (Q2 Option B). |
+| **V2.1** | 🟢 STABLE | **100%** | Frontend Dashboard complet + déployé en prod sur `https://dashboard.sterveshop.cloud`. Tag `v2.1.0-stable` sur GitHub (10/08/2026). Plan initial 7 → 9 séances (S6+S7 fusionnées). |
 
 ---
 
 ## 🎯 Tâche active
 
-- **ID** : V2.1-S9 (à démarrer)
-- **Titre** : Documentation V2.1 + tag `v2.1.0-stable`
-- **Statut** : ⏳ À DÉMARRER
-- **Séance** : S9 / 9
-- **Objectif** : Finaliser la documentation V2.1 (tracker, ADR si besoin) et poser le tag Git `v2.1.0-stable` sur le repo frontend pour verrouiller la version.
+- **ID** : — (V2.1 clôturée)
+- **Titre** : Aucune tâche active
+- **Statut** : ✅ V2.1 STABLE
+- **Prochaine version** : V2.2 (cadrage à venir)
+- **Objectif V2.2** : résolution dettes techniques prioritaires (Vue F contexte campagne, polling fin pipeline, RLS enfants V2).
 
 ### 🚨 CONTEXTE DÉCOUVERTE FIN S5 (à lire absolument)
 
@@ -94,7 +94,7 @@ Le Project Tracker pilote l'avancement du projet.
 | **S6** | Vue "Créer une campagne" (E) + webhook n8n V1 `lancer-campagne` + migration user_id | 🟢 Terminé | 10/08/2026 |
 | **S7** | Vue "Liste des campagnes" (G) + affichage statuts + navigation vers Vue F | 🟢 Terminé (fusion S6) | 10/08/2026 |
 | **S8** | Déploiement Vercel + domaine `dashboard.sterveshop.cloud` | 🟢 Terminé | 10/08/2026 |
-| **S9** | Documentation V2.1 + tag `v2.1.0-stable` | ⏳ Planifié | — |
+| **S9** | Bilan V2.1 (ADR + Tracker) + tag `v2.1.0-stable` | 🟢 Terminé | 10/08/2026 |
 
 ### Micro-étapes S5 réalisées ✅ (récap)
 - ✅ Route `/dashboard/dossiers/nouveau/page.tsx` (Server Component)
@@ -232,7 +232,7 @@ Modifications n8n en S6 : V1 Valider Paramètres + Créer Campagne (user_id).
 | **09/08/2026** | 🔍 Découverte fin S5 | Élargissement périmètre V2.1 : ajout de 2 séances (S6 Vue E + S7 Vue G) pour intégrer aussi V1 avant déploiement. Plan de 7 → 9 séances. DP-V2.1-03 actée. |
 | **10/08/2026** | ✅ V2.1-S6+S7 terminées | Vue E + Vue G + migration campagnes user_id + modifs workflow V1. Campagnes 17-18 créées via frontend avec RLS. DT-V2.1-07 résolue. |
 | **10/08/2026** | ✅ **V2.1-S8 terminée** | Dashboard déployé en prod sur `https://dashboard.sterveshop.cloud` (Vercel + DNS Hostinger + Supabase Auth prod). Magic Link + RLS + webhook V1 validés E2E (campagne 19). DT-V2.1-09 et DT-V2.1-10 créées. |
-
+| **10/08/2026** | 🏆 **V2.1 STABLE — Tag `v2.1.0-stable` posé** | Dashboard complet livré en production. ADR + Tracker finalisés. Fin officielle de la V2.1. |
 ---
 
 ## 📂 Documents de référence
@@ -324,13 +324,22 @@ Modifications n8n en S6 : V1 Valider Paramètres + Créer Campagne (user_id).
 
 ---
 
-## 🧭 Prochaine séance
+### 🧭 Prochaine séance
 
-**Séance 9 — V2.1 (S9 : Documentation V2.1 + tag `v2.1.0-stable`)**
+**Séance 1 — V2.2 (à cadrer)**
 
-**Objectif** : verrouiller la V2.1 — documentation finale + tag Git sur le repo frontend.  
-**Prérequis** :  
-- S8 terminée ✅ (dashboard live sur `https://dashboard.sterveshop.cloud`)  
+**Contexte** : V2.1 est officiellement stable (tag `v2.1.0-stable` du 10/08/2026).  
+La prochaine version se concentrera sur la **résolution des dettes techniques prioritaires** et l'amélioration de l'expérience utilisateur du pipeline.
 
-**Documents à ouvrir** : `08_Project_Tracker.md`, `06.V2_Journal_des_Decisions_d_Architecture.md`.  
-**Critère de fin** : tracker à jour (S9 + bilan V2.1), tag `v2.1.0-stable` poussé sur GitHub.
+**Priorités pressenties pour V2.2** :
+1. **DT-V2.1-09** — Vue F : afficher le contexte campagne dans le dropdown scripts.
+2. **DT-V2.1-08** — Mécanisme de polling / notification de fin de pipeline (Supabase Realtime probable).
+3. **DT-V2.1-04** — Activer la RLS sur les tables enfants V2.
+4. **DT-V2.1-05** — Ajouter `user_id` sur `contenus`, `analyses`, `scripts` (multi-user).
+
+**Documents à ouvrir en début de cadrage** :
+- `08_Project_Tracker.md`
+- `06.V2_Journal_des_Decisions_d_Architecture.md`
+- `01.V2.1_Besoin_Client.md` (relecture pour V2.2)
+
+**Critère de fin du cadrage V2.2** : Project Tracker mis à jour avec le plan de séances V2.2 et sa première tâche active.
