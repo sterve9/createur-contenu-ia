@@ -20,17 +20,23 @@ Le Project Tracker pilote l'avancement du projet.
 |---|---|---|---|
 | **V1** | 🟢 STABLE | **100%** | Verrouillée. Tag `v1.0.0-stable` sur GitHub. Aucune modif. Workflow n8n `lancer-campagne` documenté + migré user_id en S6. |
 | **V2** | 🟢 STABLE | **100%** | End-to-end validée sur 3 scripts distincts. Tag `v2.0.0-stable`. |
-| **V2.1** | 🟢 STABLE | **100%** | Frontend Dashboard complet + déployé en prod sur `https://dashboard.sterveshop.cloud`. Tag `v2.1.0-stable` sur GitHub (10/08/2026). Plan initial 7 → 9 séances (S6+S7 fusionnées). |
+| **V2.1** | 🟢 STABLE | **100%** | Frontend Dashboard complet + déployé en prod sur `https://dashboard.sterveshop.cloud`. Tag `v2.1.0-stable` sur GitHub (10/08/2026). |
+| **V2.2** | 🟡 EN COURS | **~20%** | S1 terminée (DT-V2.1-09 + DT-V2.1-02 anticipée + bonus UX outils). Reste S2 (polling fin pipeline), S3 (RLS enfants + user_id V1), S5 (tests E2E + tag). |
 
 ---
 
 ## 🎯 Tâche active
 
-- **ID** : — (V2.1 clôturée)
-- **Titre** : Aucune tâche active
-- **Statut** : ✅ V2.1 STABLE
-- **Prochaine version** : V2.2 (cadrage à venir)
-- **Objectif V2.2** : résolution dettes techniques prioritaires (Vue F contexte campagne, polling fin pipeline, RLS enfants V2).
+- **ID** : V2.2-S2
+- **Titre** : DT-V2.1-08 — Suivi de fin de pipeline (Supabase Realtime probable)
+- **Statut** : ⏳ À planifier
+- **Version en cours** : V2.2
+
+### ✅ Séance V2.2 précédente terminée
+- **V2.2-S1** : DT-V2.1-09 + bonus (DT-V2.1-02 anticipée, DT-V2.2-01, DT-V2.2-02) → 🟢 TERMINÉ le 11/08/2026
+  - Commit frontend : `feat(dashboard): enrich script dropdown with campaign context + tool pricing badge`
+  - Modifs n8n (côté serveur, hors Git) : C-V2-06 (neutralisation CTA source narration), C-V2-21a (contraintes descriptions + neutralisation), C-V2-21c (parsing robuste mode extended thinking), C-V2-21b (maxTokens 1500 → 2000), C-V2-06 (maxTokens 2000 → 3000)
+  - Preuves : dossiers 10 + 11 créés E2E avec descriptions courtes, hashtags ≤5, CTA neutres, narration neutralisée.
 
 ### 🚨 CONTEXTE DÉCOUVERTE FIN S5 (à lire absolument)
 
@@ -139,6 +145,25 @@ Le Project Tracker pilote l'avancement du projet.
 **Contexte** : le workflow V1 `lancer-campagne` ne collecte que YouTube (nœud `Collecte des contenus` = YouTube API).  
 **Décision** : le select plateforme en Vue E n'affiche que `YouTube` avec message "TikTok et Instagram seront disponibles prochainement".  
 **Justification** : honnêteté produit vs backend réel. Éviter de livrer un formulaire qui ment.
+### DP-V2.2-01 — Vue F : badges tarifs outils dans dropdown (S1)
+**Contexte** : lors du test E2E S1, découvert que l'utilisateur ne savait pas si un outil était gratuit / freemium / payant avant de le sélectionner. Impact direct sur le budget IA.
+**Décision** : afficher un badge coloré (`🟢 Gratuit · 🟡 Freemium · 🔴 Payant`) à côté de chaque outil dans les dropdowns image et animation. Légende affichée sous chaque dropdown.
+**Justification** : préserver le budget de l'utilisateur et permettre un choix éclairé. Requête SELECT enrichie avec `modele_economique`.
+
+### DP-V2.2-02 — Neutralisation des CTA source dans la narration (S1)
+**Contexte** : les scripts source contiennent des CTA spécifiques au créateur original (ex: "rejoins ma communauté Skool", "lien en bio"). Ces éléments étaient recopiés fidèlement dans la narration voix off et dans les descriptions plateforme, rendant le contenu inutilisable par l'utilisateur final.
+**Décision** : ajouter une "RÈGLE ABSOLUE" dans les prompts des nœuds C-V2-06 (Générer Scènes IA) et C-V2-21a (Construire Prompts Publications) pour :
+- Supprimer TOUTES les mentions de communautés / liens en bio / marques personnelles du créateur source
+- Les REMPLACER par des CTA génériques réutilisables ("commente si...", "abonne-toi pour...", etc.)
+**Justification** : livrer un contenu 100% utilisable sans risque de mensonge à l'audience de l'utilisateur.
+
+### DP-V2.2-03 — Descriptions plateformes STRICTEMENT courtes + 5 hashtags max (S1)
+**Contexte** : les descriptions V2-PUB étaient trop longues pour être exploitables selon les standards réels de chaque plateforme, et incluaient trop de hashtags dilués.
+**Décision** : cibles ajustées dans C-V2-21a :
+- TikTok : max 300 caractères + 5 hashtags
+- YouTube Shorts : max 150 caractères + 5 hashtags (dont #Shorts)
+- Instagram Reels : max 125 caractères + 5 hashtags
+**Justification** : conformité aux best practices 2026 des plateformes vidéo courtes + amélioration du taux de portée.
 
 ---
 
@@ -233,6 +258,8 @@ Modifications n8n en S6 : V1 Valider Paramètres + Créer Campagne (user_id).
 | **10/08/2026** | ✅ V2.1-S6+S7 terminées | Vue E + Vue G + migration campagnes user_id + modifs workflow V1. Campagnes 17-18 créées via frontend avec RLS. DT-V2.1-07 résolue. |
 | **10/08/2026** | ✅ **V2.1-S8 terminée** | Dashboard déployé en prod sur `https://dashboard.sterveshop.cloud` (Vercel + DNS Hostinger + Supabase Auth prod). Magic Link + RLS + webhook V1 validés E2E (campagne 19). DT-V2.1-09 et DT-V2.1-10 créées. |
 | **10/08/2026** | 🏆 **V2.1 STABLE — Tag `v2.1.0-stable` posé** | Dashboard complet livré en production. ADR + Tracker finalisés. Fin officielle de la V2.1. |
+| **11/08/2026** | ✅ **V2.2-S1 terminée** | DT-V2.1-09 (Vue F contexte campagne) + bonus DT-V2.1-02 anticipée (descriptions courtes + hashtags ≤5 + CTA neutralisés) + DT-V2.2-01 (badges tarifs outils) + DT-V2.2-02 (narration voix off neutralisée) tous résolus en une séance dense. 3 décisions produit actées (DP-V2.2-01, 02, 03). Dossiers 10 + 11 créés E2E avec succès. |
+| **11/08/2026** | 📚 **Cadrage V2.3 acté** | Ajout d'une version dédiée "DevOps & Portfolio Compétences" pour acquérir CI/CD GitHub Actions, tests E2E Playwright, environnement staging — compétences recherchées par les recruteurs. Plan de 5 séances tracé. |
 ---
 
 ## 📂 Documents de référence
@@ -254,15 +281,17 @@ Modifications n8n en S6 : V1 Valider Paramètres + Créer Campagne (user_id).
 - **Description** : Next.js 16 déprécie middleware au profit de proxy.
 - **Action** : `npx @next/codemod@canary middleware-to-proxy .`
 
-### DT-V2.1-02 — Descriptions générées trop longues pour être exploitables
+### DT-V2.1-02 — Descriptions générées trop longues pour être exploitables ✅ RÉSOLU 11/08/2026
 - **Origine** : V2.1-S3
-- **Priorité** : Moyenne
-- **Résolution prévue** : Post-V2.1 (retour V2-PUB)
-- **Cibles** :
-  - TikTok ~300 car
-  - Instagram Reels ~125 car
-  - YouTube Shorts ~150 car
-- **Nœuds à modifier** : C-V2-20 (TikTok), C-V2-21 (YouTube), C-V2-22 (Instagram).
+- **Résolution** : 11/08/2026 (fusionnée avec S1 V2.2 pour économie budget IA) — Modifications C-V2-21a (contraintes strictes + neutralisation CTA source) + augmentation maxTokens C-V2-21b (2000) + parsing robuste C-V2-21c (mode extended thinking). Test E2E OK (dossiers 10 + 11).
+
+### DT-V2.2-01 — Vue F : dropdowns outils sans indication tarifaire ✅ RÉSOLU 11/08/2026
+- **Origine** : V2.2-S1 (découverte lors du test)
+- **Résolution** : 11/08/2026 — Enrichissement Server Component avec `modele_economique` + fonction `construireLabelOutil()` avec badges emoji (🟢 Gratuit / 🟡 Freemium / 🔴 Payant) + légende sous chaque dropdown.
+
+### DT-V2.2-02 — Narration voix off polluée par CTA source ✅ RÉSOLU 11/08/2026
+- **Origine** : V2.2-S1 (découverte lors du test E2E dossier 10)
+- **Résolution** : 11/08/2026 — Modification du prompt du nœud C-V2-06 avec "RÈGLE ABSOLUE — NEUTRALISATION DES ÉLÉMENTS DU CRÉATEUR SOURCE" + augmentation maxTokens à 3000. Test E2E OK (dossier 11).
 
 ### DT-V2.1-03 — Champs pipeline non affichés dans la Vue C
 - **Origine** : V2.1-S3 (DP-V2.1-01)
@@ -343,16 +372,50 @@ Modifications n8n en S6 : V1 Valider Paramètres + Créer Campagne (user_id).
 
 **🟩 COULD** — reportées à V2.3+
 - DT-V2.1-01, DT-V2.1-03, DT-V2.1-06, DT-V2.1-10
+## 🚀 Version V2.3 — Roadmap "DevOps & Portfolio Compétences"
 
-### 🗓️ Plan de séances V2.2 (prévisionnel — ~5 séances)
+### 🎯 Thème directeur
+> **"Transformer le projet en portfolio DevOps prouvable"**  
+> Focus : acquérir des compétences CI/CD, tests automatisés, environnements multiples — compétences recherchées par les recruteurs.
 
-| Séance | Objectif |
-|---|---|
-| **S1** | DT-V2.1-09 — Refonte Vue F avec contexte campagne |
-| **S2** | DT-V2.1-08 — Suivi de fin de pipeline (Realtime probable) |
-| **S3** | DT-V2.1-04 + DT-V2.1-05 — Multi-user complet (RLS + user_id V1) |
-| **S4** | DT-V2.1-02 — Fix descriptions V2-PUB en n8n |
-| **S5** | Tests E2E + tag `v2.2.0-stable` |
+### 📌 Justification stratégique
+Vercel gère aujourd'hui automatiquement le déploiement Next.js à chaque `git push`, mais **n'expose pas la compétence "CI/CD GitHub Actions"** demandée dans les offres d'emploi (Développeur Fullstack, DevOps, SRE). L'objectif de V2.3 est de mettre en place un vrai pipeline CI/CD manuel via GitHub Actions, ajouter des tests automatisés, et gérer plusieurs environnements (staging + prod). Le tout **sur le projet réel**, ce qui donne une **preuve concrète en entretien** bien supérieure à un tuto YouTube.
+
+### 🗓️ Plan de séances V2.3 (prévisionnel — ~5 séances)
+
+| Séance | Objectif | Compétence acquise |
+|---|---|---|
+| **S1** | Mise en place CI GitHub Actions basique (lint + build à chaque push) + badge README | GitHub Actions, workflows YAML, secrets |
+| **S2** | Environnement staging Vercel + branche `staging` + preview automatique | Environnements multiples, GitFlow, Vercel Preview |
+| **S3** | Installation Playwright + écriture 2-3 tests E2E critiques (login, création dossier, navigation) | Tests E2E, Playwright, sélecteurs stables |
+| **S4** | Intégration Playwright dans le CI GitHub Actions + blocage des PR si tests rouges | CI avancé, quality gates, Pull Request checks |
+| **S5** | Notifications Discord/Slack après deploy prod + tag `v2.3.0-stable` | Webhooks, notifications, release automation |
+
+### 🎓 Valorisation CV attendue
+
+Après V2.3, tu pourras écrire sur ton CV / LinkedIn :
+
+> *"Mise en place d'un pipeline CI/CD complet (GitHub Actions + Vercel) sur un projet SaaS d'assistant IA en production, incluant tests E2E Playwright, environnement staging automatisé avec preview deployments, blocage des Pull Requests sur tests rouges, et notifications Slack/Discord post-deploy."*
+
+### 📂 Documents à ouvrir en début de S1 V2.3
+- `08_Project_Tracker.md`
+- Documentation officielle GitHub Actions
+- Documentation Vercel Preview Deployments
+
+### ✅ Critère de démarrage V2.3
+- V2.2 tag `v2.2.0-stable` publié
+- Aucune dette technique MUST bloquante
+- Projet stable en prod
+
+### 🗓️ Plan de séances V2.2 (révisé après S1)
+
+| Séance | Objectif | Statut |
+|---|---|---|
+| **S1** | DT-V2.1-09 + bonus (DT-V2.1-02 fusionnée, DT-V2.2-01, DT-V2.2-02) | 🟢 Terminé 11/08/2026 |
+| **S2** | DT-V2.1-08 — Suivi de fin de pipeline (Supabase Realtime probable) | ⏳ À planifier |
+| **S3** | DT-V2.1-04 + DT-V2.1-05 — Multi-user complet (RLS enfants V2 + user_id V1 contenus/analyses/scripts) | ⏳ À planifier |
+| **S4** | ~~DT-V2.1-02~~ (déjà résolue en S1) — Séance disponible pour d'autres priorités | 🔄 Libérée |
+| **S5** | Tests E2E complets + tag `v2.2.0-stable` | ⏳ À planifier |
 
 ### 📂 Documents à ouvrir en début de S1 V2.2
 - `08_Project_Tracker.md`
