@@ -49,7 +49,7 @@ Le Project Tracker pilote l'avancement du projet.
 | **V1** | 🟢 STABLE | 100% | `v1.0.0-stable` | Workflow n8n `lancer-campagne`. Verrouillée. |
 | **V2** | 🟢 STABLE | 100% | `v2.0.0-stable` | Pipeline complet V2-ORCH → V2-PUB. E2E validé. |
 | **V2.1** | 🟢 STABLE | 100% | `v2.1.0-stable` | Frontend Dashboard + prod sur `dashboard.sterveshop.cloud`. |
-| **V2.2** | 🟡 EN COURS | ~20% | — | S1 terminée (5 dettes résolues). Reste S2 → S5. |
+| **V2.2** | 🟡 EN COURS | ~40% | — | S1 + S2 terminées. Reste S3 → S5. |
 | **V2.3** | ⚪ PRÉVUE | 0% | — | Roadmap "DevOps & Portfolio Compétences". |
 
 ---
@@ -58,13 +58,13 @@ Le Project Tracker pilote l'avancement du projet.
 
 | Champ | Valeur |
 |---|---|
-| **ID** | V2.2-S2 |
-| **Titre** | DT-V2.1-08 — Suivi de fin de pipeline (Supabase Realtime probable) |
+| **ID** | V2.2-S3 |
+| **Titre** | DT-V2.1-04 + DT-V2.1-05 — Multi-user complet (RLS enfants V2 + user_id contenus/analyses/scripts) |
 | **Statut** | ⏳ À planifier |
 | **Version** | V2.2 |
-| **Documents à ouvrir** | `08_Project_Tracker.md`, `06.V2_Journal_des_Decisions_d_Architecture.md` |
+| **Documents à ouvrir** | `08_Project_Tracker.md`, `06_Journal_des_Decisions_d_Architecture.md` |
 
-**Séance précédente** : V2.2-S1 — terminée le 11/08/2026 (voir [Historique V2.2](#v22-ux)).
+**Séance précédente** : V2.2-S2 — terminée le 11/08/2026 (voir [Historique V2.2](#v22-ux)).
 
 ---
 
@@ -143,6 +143,28 @@ Tests E2E V1 (via Vue E) :
 **Décisions actées** : DP-V2.2-01, DP-V2.2-02, DP-V2.2-03, DP-V2.2-04, ADR-0020
 
 **Preuves E2E** : dossier 10 (fail narration → correctif) puis dossier 11 (✅ complet).
+#### V2.2-S2 — DT-V2.1-08 Realtime (11/08/2026) 🟢
+
+**Objectif** : Résoudre DT-V2.1-08 (suivi de fin de pipeline sans F5).
+
+**Livrables** :
+- ✅ DT-V2.1-08 résolue (Supabase Realtime + toast `sonner`)
+- ✅ Composant réutilisable `RealtimeRefresher` monté sur Vue B et Vue G
+- ✅ Publication `supabase_realtime` configurée (tables `campagnes` + `v2_dossiers_production`)
+- ✅ Validation prod sur `dashboard.sterveshop.cloud`
+
+**Commits frontend** (`createur-contenu-ia-dashboard`) :
+- `feat(dashboard): add Supabase Realtime auto-refresh + completion toast on pipeline end (DT-V2.1-08)` (hash e063b85)
+
+**Commits doc** (`createur-contenu-ia`) :
+- `docs(adr): add ADR-0021 (Realtime pattern) + DP-V2.2-05 (toast sonner)`
+- `docs(tracker): close V2.2-S2 + resolve DT-V2.1-08`
+
+**Modifs n8n (hors Git)** : aucune.
+
+**Décisions actées** : ADR-0021, DP-V2.2-05
+
+**Preuves E2E** : test Supabase simulé (campagne #19) + campagne réelle #20 "Test Realtime V2.2 S2" + validation prod SUBSCRIBED confirmée.
 
 ---
 
@@ -179,6 +201,9 @@ Cibles ajustées dans C-V2-21a :
 #### DP-V2.2-04 — Redirection auth-based sur route `/` (S1 post-fix)
 La route racine `/` remplace le template `create-next-app` par un Server Component qui redirige vers `/dashboard` (connecté) ou `/login` (anonyme).
 
+#### DP-V2.2-05 — Toast visuel de fin de pipeline via `sonner` (S2)
+Ajout d'un toast (`sonner`) sur transition vers statut final (`TERMINE` V2 / `TERMINEE` V1). Détection basée sur comparaison `payload.old.statut` vs `payload.new.statut` pour éviter les toasts parasites sur UPDATE intermédiaires. Voir ADR-0021.
+
 ---
 
 ## ⚠️ Dettes techniques <a id="dettes-techniques"></a>
@@ -209,17 +234,17 @@ La route racine `/` remplace le template `create-next-app` par un Server Compone
 
 **DT-V2.2-03** : Remplacement du template `create-next-app` par un Server Component minimaliste qui redirige selon l'état d'authentification.
 
+**DT-V2.1-08** : Adoption de Supabase Realtime (ADR-0021). Publication `supabase_realtime` activée sur `campagnes` + `v2_dossiers_production`. Composant `RealtimeRefresher` monté sur Vue B/G. Toast `sonner` sur transition finale (DP-V2.2-05).
+
 </details>
 
 ### 🔴 MUST actives <a id="dettes-must"></a>
 
 | ID | Titre | Version cible | Séance prévue |
 |---|---|---|---|
-| DT-V2.1-08 | Pas de mécanisme polling / notification de fin pipeline | V2.2 | S2 |
 
-**DT-V2.1-08** — Les webhooks V1/V2 répondent immédiatement mais le pipeline continue en async pendant plusieurs minutes. L'utilisateur ne sait pas quand c'est terminé sauf en rafraîchissant manuellement (F5).
-- Solutions possibles : polling client, Supabase Realtime, notification email/push
-- Mitigation temporaire : Vue G affiche statut au chargement
+
+
 
 ### 🟨 SHOULD actives <a id="dettes-should"></a>
 
@@ -299,7 +324,7 @@ Voir Historique des séances V2.1.
 | Séance | Objectif | Statut | Date |
 |---|---|---|---|
 | S1 | DT-V2.1-09 + bonus (DT-V2.1-02, DT-V2.2-01, DT-V2.2-02, DT-V2.2-03) | 🟢 | 11/08/2026 |
-| S2 | DT-V2.1-08 — Suivi de fin de pipeline (Realtime) | ⏳ | — |
+| S2 | DT-V2.1-08 — Suivi de fin de pipeline (Realtime) | 🟢 | 11/08/2026 |
 | S3 | DT-V2.1-04 + DT-V2.1-05 — Multi-user complet | ⏳ | — |
 | S4 | Séance libérée (DT-V2.1-02 déjà résolue en S1) | 🔄 | — |
 | S5 | Tests E2E + tag `v2.2.0-stable` | ⏳ | — |
@@ -344,6 +369,7 @@ Voir Historique des séances V2.1.
 | 10/08/2026 | 🏆 V2.1 STABLE — Tag `v2.1.0-stable` | Dashboard complet livré. Fin V2.1. |
 | 11/08/2026 | ✅ V2.2-S1 terminée | 5 dettes résolues. 4 DP actées. |
 | 11/08/2026 | 📚 Cadrage V2.3 acté | Roadmap "DevOps & Portfolio Compétences". |
+| 11/08/2026 | ✅ V2.2-S2 terminée | DT-V2.1-08 résolue. Realtime en prod. ADR-0021 + DP-V2.2-05. |
 
 ---
 
@@ -357,7 +383,7 @@ Voir Historique des séances V2.1.
 | `04.V2_Specification_des_Composants.md` | Prompts système + spec composants |
 | `04.1.V2_Catalogue_Outils.md` | Catalogue des outils image/animation |
 | `05.V2_Implementation_Technique.md` | Spécifications techniques des nœuds |
-| `06.V2_Journal_des_Decisions_d_Architecture.md` | ADR V1 + V2 + décisions produit |
+| `06_Journal_des_Decisions_d_Architecture.md` | ADR V1 + V2 + décisions produit (fichier unifié) |
 | `07.V2_Plan_de_tests.md` | Cas de tests V2 |
 | `99_Prompt_de_reprise.md` | Prompts de reprise entre séances |
 

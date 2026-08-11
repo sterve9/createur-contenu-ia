@@ -445,6 +445,66 @@ Adopter **3 mesures cumulatives** de robustesse dans tous les nœuds de normalis
 #### Conséquences
 - Nœuds Code de normalisation plus robustes.
 - Coût IA légèrement supérieur dû à l'augmentation de `maxTokens`.
+---
+
+## ADR-0021 — Adoption de Supabase Realtime pour le suivi de fin de pipeline
+
+- **Date** : 11 août 2026
+- **Version** : V2.2
+- **Séance** : V2.2-S2
+- **Statut** : ✅ Actée et implémentée
+- **Dette résolue** : DT-V2.1-08
+
+### Contexte
+
+Les webhooks des pipelines V1 (`lancer-campagne`) et V2 (`v2-creer-dossier`) répondent immédiatement (mode "Immediately"), mais le travail se poursuit en asynchrone pendant plusieurs minutes (~30-60s pour V1, ~4 min pour V2). L'utilisateur n'avait aucun moyen de savoir quand un pipeline se terminait, sauf en rafraîchissant manuellement la page (F5). Mauvaise UX confirmée en production sur `dashboard.sterveshop.cloud`.
+
+### Options envisagées
+
+1. **Supabase Realtime** (WebSocket, push serveur → client)
+2. **Polling client** (`setInterval` régulier)
+3. **Notification email/push** (hors scope V2.2)
+
+### Décision
+
+Adoption de **Supabase Realtime** comme mécanisme principal de suivi.
+
+### Justification
+
+- Push serveur = latence minimale (UX "temps réel")
+- Zéro requête polluante (aucun `setInterval`)
+- Fit natif Supabase (publication `supabase_realtime` déjà disponible)
+- RLS honorée automatiquement (aucun utilisateur ne reçoit d'événement qu'il n'a pas le droit de lire)
+- Compétence transférable (WebSockets, subscriptions, Realtime patterns Next.js App Router)
+
+### Implémentation
+
+- **Côté Supabase** : ajout des tables `campagnes` et `v2_dossiers_production` à la publication `supabase_realtime` (Database → Publications).
+- **Côté frontend** : création d'un Client Component réutilisable `app/components/RealtimeRefresher.tsx` :
+  - Ouvre un canal Supabase Realtime au montage (`useEffect`)
+  - Écoute les événements `UPDATE` sur la table passée en prop
+  - Sur chaque événement → `router.refresh()` (re-fetch du Server Component parent)
+  - Détecte la transition vers le statut final (`TERMINE` pour V2, `TERMINEE` pour V1) et déclenche un toast `sonner`
+  - Cleanup automatique via `supabase.removeChannel()` au démontage
+- **Intégration** : `<RealtimeRefresher table="..." />` placé dans `app/dashboard/page.tsx` (Vue B) et `app/dashboard/campagnes/page.tsx` (Vue G).
+
+### Conséquences
+
+- L'utilisateur voit désormais la liste se rafraîchir automatiquement sans F5.
+- Un toast visuel confirme la fin d'un pipeline (voir DP-V2.2-05).
+- Aucun impact sur le pipeline n8n : aucune modification de workflow requise.
+- Aucun impact sur les RLS existantes : elles filtrent naturellement les événements Realtime.
+
+### Limitations connues
+
+- L'écoute est active uniquement sur les pages listes (Vue B, Vue G). Si l'utilisateur est sur une autre page (formulaire, détail), il ne reçoit rien.
+- Le filtrage des événements est côté client (`event: "UPDATE"` sur toute la table). Sur des tables très volumineuses, un filtre serveur `filter: "statut=eq.TERMINE"` pourrait être ajouté plus tard.
+
+### Preuves de validation
+
+- Test manuel Supabase (UPDATE simulé sur `campagnes` #19) : événement reçu, toast affiché, page rafraîchie.
+- Test E2E V1 (campagne #20 "Test Realtime V2.2 S2") : passage EN_COURS → TERMINEE observé sans F5.
+- Validation prod : subscription `SUBSCRIBED` confirmée en console navigateur sur `dashboard.sterveshop.cloud`.
 
 ---
 
@@ -557,6 +617,35 @@ La route racine `/` affichait encore le template par défaut de `create-next-app
 
 ##### Décision
 Remplacer par un Server Component silencieux qui redirige vers `/dashboard` si connecté, ou `/login` si anonyme.
+---
+
+## DP-V2.2-05 — Toast visuel de fin de pipeline via `sonner`
+
+- **Date** : 11 août 2026
+- **Séance** : V2.2-S2
+- **Lié à** : ADR-0021 (Realtime), DT-V2.1-08
+
+### Décision
+
+Ajout d'un toast visuel (bibliothèque `sonner`) affiché lorsqu'un dossier passe à `TERMINE` (V2) ou qu'une campagne passe à `TERMINEE` (V1). Le toast n'apparaît **que sur transition** (comparaison `payload.old.statut` vs `payload.new.statut`) — jamais sur un UPDATE intermédiaire (ex: incrément de `nb_contenus_traites`).
+
+### Justification
+
+- Sans toast, le rafraîchissement Realtime est silencieux : si l'utilisateur ne regarde pas fixement l'écran, il rate la fin du pipeline.
+- `sonner` : librairie moderne (~5 KB), recommandée par shadcn/ui, zéro config, pas de contexte à créer.
+- Position `top-right` : standard dashboard, ne cache pas le contenu principal.
+- Option `richColors` : différenciation visuelle (vert = succès).
+
+### Format du toast
+
+- Titre : `Dossier #12 terminé(e) ✅` ou `Campagne #17 terminé(e) ✅`
+- Description : `Le pipeline vient de se terminer.`
+
+### Implémentation
+
+- Installation : `npm install sonner`
+- `<Toaster richColors position="top-right" />` monté une fois dans `app/layout.tsx`
+- Appel `toast.success(...)` dans `RealtimeRefresher.tsx` sur détection de transition finale
 
 ---
 
