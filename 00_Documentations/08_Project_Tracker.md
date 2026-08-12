@@ -1,7 +1,7 @@
 # 08 — Project Tracker
 
 > **Point d'entrée officiel du projet Créateur de Contenu IA**  
-> **Dernière mise à jour** : 11 août 2026
+> **Dernière mise à jour** : 12 août 2026
 
 ---
 
@@ -49,7 +49,7 @@ Le Project Tracker pilote l'avancement du projet.
 | **V1** | 🟢 STABLE | 100% | `v1.0.0-stable` | Workflow n8n `lancer-campagne`. Verrouillée. |
 | **V2** | 🟢 STABLE | 100% | `v2.0.0-stable` | Pipeline complet V2-ORCH → V2-PUB. E2E validé. |
 | **V2.1** | 🟢 STABLE | 100% | `v2.1.0-stable` | Frontend Dashboard + prod sur `dashboard.sterveshop.cloud`. |
-| **V2.2** | 🟡 EN COURS | ~40% | — | S1 + S2 terminées. Reste S3 → S5. |
+| **V2.2** | 🟡 EN COURS | ~60% | — | S1 + S2 + S3 terminées. Reste S4 → S5. |
 | **V2.3** | ⚪ PRÉVUE | 0% | — | Roadmap "DevOps & Portfolio Compétences". |
 
 ---
@@ -58,13 +58,13 @@ Le Project Tracker pilote l'avancement du projet.
 
 | Champ | Valeur |
 |---|---|
-| **ID** | V2.2-S3 |
-| **Titre** | DT-V2.1-04 + DT-V2.1-05 — Multi-user complet (RLS enfants V2 + user_id contenus/analyses/scripts) |
-| **Statut** | ⏳ À planifier |
+| **ID** | V2.2-S4 |
+| **Titre** | Consolidation doc S3 + prochaine tâche opérationnelle (Option A / B / C) |
+| **Statut** | 🔄 En cours |
 | **Version** | V2.2 |
 | **Documents à ouvrir** | `08_Project_Tracker.md`, `06_Journal_des_Decisions_d_Architecture.md` |
 
-**Séance précédente** : V2.2-S2 — terminée le 11/08/2026 (voir [Historique V2.2](#v22-ux)).
+**Séance précédente** : V2.2-S3 — terminée le 12/08/2026 (voir [Historique V2.2](#v22-ux)).
 
 ---
 
@@ -143,6 +143,7 @@ Tests E2E V1 (via Vue E) :
 **Décisions actées** : DP-V2.2-01, DP-V2.2-02, DP-V2.2-03, DP-V2.2-04, ADR-0020
 
 **Preuves E2E** : dossier 10 (fail narration → correctif) puis dossier 11 (✅ complet).
+
 #### V2.2-S2 — DT-V2.1-08 Realtime (11/08/2026) 🟢
 
 **Objectif** : Résoudre DT-V2.1-08 (suivi de fin de pipeline sans F5).
@@ -165,6 +166,33 @@ Tests E2E V1 (via Vue E) :
 **Décisions actées** : ADR-0021, DP-V2.2-05
 
 **Preuves E2E** : test Supabase simulé (campagne #19) + campagne réelle #20 "Test Realtime V2.2 S2" + validation prod SUBSCRIBED confirmée.
+
+#### V2.2-S3 — DT-V2.1-04 + DT-V2.1-05 Multi-user complet (12/08/2026) 🟢
+
+**Objectif** : Sécuriser les tables enfants V1 et V2 via RLS pour garantir l'isolation multi-user.
+
+**Livrables** :
+- ✅ DT-V2.1-04 résolue : RLS activée + policies SELECT sur 5 tables enfants V2 (`v2_scenes`, `v2_plans`, `v2_prompts_images`, `v2_prompts_animations`, `v2_descriptions_publication`)
+- ✅ DT-V2.1-05 résolue : RLS activée + policies SELECT sur 3 tables enfants V1 (`contenus`, `analyses`, `scripts`)
+- ✅ Pattern JOIN cascade validé (1 à 3 sauts selon profondeur de la hiérarchie)
+- ✅ Tests cross-user confirmés : 0 fuite de données depuis le compte secondaire
+
+**Commits frontend** (`createur-contenu-ia-dashboard`) : aucun (résolution 100% côté DB Supabase)
+
+**Commits doc** (`createur-contenu-ia`) : aucun (à faire en S4)
+
+**Modifications n8n (hors Git)** : aucune
+
+**Décisions actées** : ADR-0022
+
+**Preuves de validation** :
+1. Test SQL simulé cross-user (`SET LOCAL role = 'authenticated'` + `request.jwt.claims`) : propriétaire dossier 11 → 4 scènes visibles ✅ / UUID bidon → 0 scène ✅
+2. Test frontend compte propriétaire : Vue C dossier 11 complet ✅
+3. Test frontend cross-user (`sterve90237@gmail.com`) : Vue B vide, Vue G vide, Vue F dropdown vide, aucune fuite ✅
+
+**Découvertes bonus** (hors dettes actives, à évaluer en V2.3+) :
+- Tables encore `RLS DISABLED` : `v2_checklists`, `v2_etapes_che...`, `v2_journal_execution`, `v2_outils`, `journal_execution`
+- `v2_outils` est un référentiel partagé potentiellement à laisser accessible à tous
 
 ---
 
@@ -192,7 +220,7 @@ Affichage `🟢 Gratuit / 🟡 Freemium / 🔴 Payant` à côté de chaque outil
 #### DP-V2.2-02 — Neutralisation des CTA source (S1)
 "RÈGLE ABSOLUE" ajoutée dans C-V2-06 (narration) et C-V2-21a (descriptions) pour supprimer les mentions Skool / lien en bio / marques personnelles du créateur source. Remplacement par CTA génériques réutilisables.
 
-#### DP-V2.2-03 — Descriptions strictement courtes + 5 hashtags max (S1)
+#### DP-V2.2-03 — Descriptions strictly courtes + 5 hashtags max (S1)
 Cibles ajustées dans C-V2-21a :
 - TikTok : max 300 car + 5 hashtags
 - YouTube Shorts : max 150 car + 5 hashtags (dont #Shorts)
@@ -218,6 +246,9 @@ Ajout d'un toast (`sonner`) sur transition vers statut final (`TERMINE` V2 / `TE
 | DT-V2.2-01 | Vue F dropdowns outils sans indication tarifaire | 11/08/2026 | V2.2-S1 |
 | DT-V2.2-02 | Narration voix off polluée par CTA source | 11/08/2026 | V2.2-S1 |
 | DT-V2.2-03 | Page d'accueil `/` non professionnelle | 11/08/2026 | V2.2-S1 (post) |
+| DT-V2.1-08 | Suivi de fin de pipeline sans F5 (Realtime) | 11/08/2026 | V2.2-S2 |
+| DT-V2.1-04 | RLS enfants V2 désactivée | 12/08/2026 | V2.2-S3 |
+| DT-V2.1-05 | user_id sur contenus/analyses/scripts | 12/08/2026 | V2.2-S3 |
 
 <details>
 <summary>📖 Détails des résolutions (cliquer pour déplier)</summary>
@@ -236,6 +267,10 @@ Ajout d'un toast (`sonner`) sur transition vers statut final (`TERMINE` V2 / `TE
 
 **DT-V2.1-08** : Adoption de Supabase Realtime (ADR-0021). Publication `supabase_realtime` activée sur `campagnes` + `v2_dossiers_production`. Composant `RealtimeRefresher` monté sur Vue B/G. Toast `sonner` sur transition finale (DP-V2.2-05).
 
+**DT-V2.1-04** : RLS activée sur 5 tables enfants V2 via pattern EXISTS + JOIN cascade (ADR-0022). Zéro modification n8n.
+
+**DT-V2.1-05** : RLS activée sur 3 tables enfants V1 (`contenus`, `analyses`, `scripts`) via même pattern. Tests cross-user validés avec compte `sterve90237@gmail.com`.
+
 </details>
 
 ### 🔴 MUST actives <a id="dettes-must"></a>
@@ -244,18 +279,12 @@ Ajout d'un toast (`sonner`) sur transition vers statut final (`TERMINE` V2 / `TE
 |---|---|---|---|
 
 
-
-
 ### 🟨 SHOULD actives <a id="dettes-should"></a>
 
 | ID | Titre | Version cible | Séance prévue |
 |---|---|---|---|
-| DT-V2.1-04 | RLS enfants V2 désactivée | V2.2 | S3 |
-| DT-V2.1-05 | user_id sur contenus/analyses/scripts | V2.2 | S3 |
 
-**DT-V2.1-04** — Tables sans RLS : `v2_scenes`, `v2_plans`, `v2_prompts_images`, `v2_prompts_animations`, `v2_descriptions_publication`.
-
-**DT-V2.1-05** — Restant : contenus, analyses, scripts (globaux). OK pour MVP mono-user, à corriger avant vrai multi-user.
+Aucune dette SHOULD active à ce jour. DT-V2.1-04 + DT-V2.1-05 résolues en V2.2-S3.
 
 ### 🟩 COULD reportées <a id="dettes-could"></a>
 
@@ -278,6 +307,7 @@ Ajout d'un toast (`sonner`) sur transition vers statut final (`TERMINE` V2 / `TE
 **DT-V2.1-10** : CNAME `dashboard` → `cname.vercel-dns.com` (legacy). Vercel recommande `a16b628326eee6c7.vercel-dns-017.com`. Legacy continue de fonctionner officiellement.
 
 </details>
+
 ---
 
 ## 🔧 Architecture n8n (référence) <a id="architecture-n8n"></a>
@@ -325,8 +355,8 @@ Voir Historique des séances V2.1.
 |---|---|---|---|
 | S1 | DT-V2.1-09 + bonus (DT-V2.1-02, DT-V2.2-01, DT-V2.2-02, DT-V2.2-03) | 🟢 | 11/08/2026 |
 | S2 | DT-V2.1-08 — Suivi de fin de pipeline (Realtime) | 🟢 | 11/08/2026 |
-| S3 | DT-V2.1-04 + DT-V2.1-05 — Multi-user complet | ⏳ | — |
-| S4 | Séance libérée (DT-V2.1-02 déjà résolue en S1) | 🔄 | — |
+| S3 | DT-V2.1-04 + DT-V2.1-05 — Multi-user complet (RLS 8 tables) | 🟢 | 12/08/2026 |
+| S4 | Consolidation doc S3 + prochaine tâche opérationnelle | 🔄 | — |
 | S5 | Tests E2E + tag `v2.2.0-stable` | ⏳ | — |
 
 *Critère de démarrage V2.2 : ✅ Tag `v2.1.0-stable` + prod stable + cadrage validé (10/08/2026).*
@@ -370,6 +400,7 @@ Voir Historique des séances V2.1.
 | 11/08/2026 | ✅ V2.2-S1 terminée | 5 dettes résolues. 4 DP actées. |
 | 11/08/2026 | 📚 Cadrage V2.3 acté | Roadmap "DevOps & Portfolio Compétences". |
 | 11/08/2026 | ✅ V2.2-S2 terminée | DT-V2.1-08 résolue. Realtime en prod. ADR-0021 + DP-V2.2-05. |
+| 12/08/2026 | ✅ V2.2-S3 terminée | DT-V2.1-04 + DT-V2.1-05 résolues. 8 tables enfants sécurisées. ADR-0022. Zéro commit frontend, zéro modif n8n. |
 
 ---
 
